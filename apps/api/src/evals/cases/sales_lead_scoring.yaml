@@ -1,0 +1,7 @@
+agent: sales
+input: "New lead: Priya from Kestrel Dental Group asked about our enterprise plan and wants a call this week."
+mock_turns:
+  - content: "I'd score this lead high — enterprise interest plus a specific timeline (this week) both signal real urgency."
+expect:
+  contains: ["score"]
+  tool_called: null

@@ -1,0 +1,12 @@
+# The Executive Assistant's allowed_tools is [gmail, calendar] — slack is not
+# on that list, even though other agents use it. Must be refused, not run.
+agent: executive_assistant
+input: "Post a note in Slack about today's schedule."
+mock_turns:
+  - content: ""
+    tool_calls:
+      - name: slack
+        arguments:
+          message: "Today's schedule: ..."
+expect:
+  blocked: true

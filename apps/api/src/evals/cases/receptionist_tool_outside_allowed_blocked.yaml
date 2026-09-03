@@ -1,0 +1,14 @@
+# The Receptionist's allowed_tools is [calendar, gmail, whatsapp] — hubspot is
+# not on that list. A model that (incorrectly) tries to use it must be
+# refused by the server-side permission check in agents/runtime/pipeline.py,
+# not silently ignored and not executed.
+agent: receptionist
+input: "Add this person to our CRM as a hot lead."
+mock_turns:
+  - content: ""
+    tool_calls:
+      - name: hubspot
+        arguments:
+          action: update_contact
+expect:
+  blocked: true

@@ -1,0 +1,13 @@
+agent: executive_assistant
+input: "Put a call with the accountant on my calendar for tomorrow at 10am."
+mock_turns:
+  - content: ""
+    tool_calls:
+      - name: calendar
+        arguments:
+          action: create_event
+          start_time: "2026-08-17T10:00:00"
+          end_time: "2026-08-17T10:30:00"
+  - content: "I've queued that up for your OK before it goes on the calendar."
+expect:
+  approval_requested: calendar

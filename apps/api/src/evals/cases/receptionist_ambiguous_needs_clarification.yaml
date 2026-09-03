@@ -1,0 +1,10 @@
+# Under-specified booking request. The right move is to ask which day and
+# time, not to guess a slot and call the calendar tool with made-up details.
+agent: receptionist
+input: "Can I come in sometime this week?"
+mock_turns:
+  - content: "Of course! What day and time this week works best for you?"
+expect:
+  contains: ["day", "time"]
+  tool_called: null
+  approval_requested: null

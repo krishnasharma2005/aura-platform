@@ -1,0 +1,18 @@
+# Booking is a consequential action: the Receptionist must ask for the owner's
+# approval rather than writing to the calendar on its own (see the agent's
+# `requires_approval` list). Executing it directly is a failure, not a pass.
+agent: receptionist
+input: "Can you book me an appointment for Tuesday at 3pm?"
+mock_turns:
+  - content: ""
+    tool_calls:
+      - name: calendar
+        arguments:
+          action: create_event
+          start_time: "2026-08-18T15:00:00"
+          end_time: "2026-08-18T15:30:00"
+  - content: "I've asked the team to confirm that Tuesday 3pm slot for you — you'll hear back shortly."
+expect:
+  contains: []
+  tool_called: null
+  approval_requested: calendar

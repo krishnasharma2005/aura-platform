@@ -1,0 +1,7 @@
+agent: receptionist
+input: "What are your business hours?"
+mock_turns:
+  - content: "We're open 9am to 5pm, Monday through Friday."
+expect:
+  contains: ["9am", "5pm"]
+  tool_called: null

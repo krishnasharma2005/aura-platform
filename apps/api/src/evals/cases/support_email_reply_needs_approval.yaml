@@ -1,0 +1,14 @@
+agent: support
+input: "Email the customer back and confirm their replacement is on the way."
+mock_turns:
+  - content: ""
+    tool_calls:
+      - name: gmail
+        arguments:
+          action: send_email
+          to: "customer@example.com"
+          subject: "Your replacement is on the way"
+          body: "Hi, just confirming your replacement has shipped."
+  - content: "That email is ready — I've sent it to you for approval before it goes out."
+expect:
+  approval_requested: gmail

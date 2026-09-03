@@ -1,0 +1,17 @@
+# Writing to the CRM is consequential (it changes a record someone else on
+# the team relies on), so it's in the Sales Agent's requires_approval list —
+# it must queue, not execute.
+agent: sales
+input: "Mark Priya's deal as won and update the CRM."
+mock_turns:
+  - content: ""
+    tool_calls:
+      - name: hubspot
+        arguments:
+          action: update_contact
+          contact_id: "priya-kestrel"
+          fields:
+            deal_stage: "won"
+  - content: "I've asked you to confirm that CRM update before I make it."
+expect:
+  approval_requested: hubspot

@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 620" width="940" height="620" role="img" aria-label="AURA architecture: clients reach a FastAPI modular monolith whose shared agent runtime drives all six agents over one memory, knowledge and tool layer.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7d8a86"/>
+    </marker>
+    <marker id="art" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1d6b5f"/>
+    </marker>
+  </defs>
+
+  <style>
+    .t   { font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #16211f; }
+    .lbl { font-size: 13px; font-weight: 600; }
+    .sub { font-size: 11px; fill: #5d6b67; }
+    .eye { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; fill: #7d8a86; letter-spacing: .09em; }
+    .box { fill: #ffffff; stroke: #d5ddd9; stroke-width: 1.2; }
+    .band{ fill: #f4f7f5; stroke: #e2e9e5; stroke-width: 1; }
+    .core{ fill: #e9f2ef; stroke: #1d6b5f; stroke-width: 1.6; }
+    .ln  { stroke: #a9b5b1; stroke-width: 1.2; fill: none; }
+    .lnt { stroke: #1d6b5f; stroke-width: 1.6; fill: none; }
+    .elbl{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; fill: #6b7975; }
+  </style>
+
+  <!-- clients -->
+  <text class="t eye" x="40" y="34">CLIENTS</text>
+  <rect class="box" x="40" y="46" width="176" height="44" rx="8"/>
+  <text class="t lbl" x="60" y="66">Owner dashboard</text>
+  <text class="t sub" x="60" y="81">Next.js · six agent views</text>
+
+  <rect class="box" x="236" y="46" width="176" height="44" rx="8"/>
+  <text class="t lbl" x="256" y="66">Website widget</text>
+  <text class="t sub" x="256" y="81">Embedded on any domain</text>
+
+  <rect class="box" x="432" y="46" width="150" height="44" rx="8"/>
+  <text class="t lbl" x="452" y="66">WhatsApp</text>
+  <text class="t sub" x="452" y="81">Inbound webhook</text>
+
+  <line class="ln" x1="128" y1="90" x2="128" y2="126" marker-end="url(#ar)"/>
+  <line class="ln" x1="324" y1="90" x2="324" y2="126" marker-end="url(#ar)"/>
+  <line class="ln" x1="507" y1="90" x2="507" y2="126" marker-end="url(#ar)"/>
+
+  <!-- api -->
+  <rect class="band" x="40" y="128" width="860" height="60" rx="10"/>
+  <text class="t lbl" x="60" y="153">FastAPI — modular monolith</text>
+  <text class="t sub" x="60" y="170">Auth · RBAC · tenant isolation on every query · plain-language errors</text>
+  <text class="t eye" x="700" y="153">ONE DEPLOYABLE</text>
+  <text class="t sub" x="700" y="170">splits into services later</text>
+
+  <line class="lnt" x1="470" y1="188" x2="470" y2="222" marker-end="url(#art)"/>
+
+  <!-- runtime -->
+  <rect class="core" x="250" y="224" width="440" height="66" rx="10"/>
+  <text class="t lbl" x="274" y="250">Shared agent runtime</text>
+  <text class="t sub" x="274" y="268">Every agent is configuration, not code — one pipeline runs all six</text>
+  <text class="t eye" x="620" y="250" text-anchor="end" style="fill:#1d6b5f">THE CORE</text>
+
+  <!-- six agents -->
+  <text class="t eye" x="40" y="326">AGENTS — YAML CONFIG ONLY</text>
+  <g>
+    <rect class="box" x="40" y="338" width="132" height="38" rx="7"/>
+    <text class="t lbl" x="56" y="362">Receptionist</text>
+    <rect class="box" x="184" y="338" width="132" height="38" rx="7"/>
+    <text class="t lbl" x="200" y="362">Sales</text>
+    <rect class="box" x="328" y="338" width="132" height="38" rx="7"/>
+    <text class="t lbl" x="344" y="362">Marketing</text>
+    <rect class="box" x="472" y="338" width="132" height="38" rx="7"/>
+    <text class="t lbl" x="488" y="362">Assistant</text>
+    <rect class="box" x="616" y="338" width="132" height="38" rx="7"/>
+    <text class="t lbl" x="632" y="362">Support</text>
+    <rect class="box" x="760" y="338" width="140" height="38" rx="7"/>
+    <text class="t lbl" x="776" y="362">E-Commerce</text>
+  </g>
+  <path class="ln" d="M300 290 C300 314, 106 314, 106 338" marker-end="url(#ar)"/>
+  <path class="ln" d="M380 290 C380 314, 250 314, 250 338" marker-end="url(#ar)"/>
+  <path class="ln" d="M440 290 C440 314, 394 314, 394 338" marker-end="url(#ar)"/>
+  <path class="ln" d="M500 290 C500 314, 538 314, 538 338" marker-end="url(#ar)"/>
+  <path class="ln" d="M560 290 C560 314, 682 314, 682 338" marker-end="url(#ar)"/>
+  <path class="ln" d="M640 290 C640 314, 830 314, 830 338" marker-end="url(#ar)"/>
+
+  <!-- shared substrate -->
+  <text class="t eye" x="40" y="424">SHARED BY ALL SIX — THIS IS THE DIFFERENTIATOR</text>
+  <rect class="band" x="40" y="436" width="272" height="72" rx="9"/>
+  <text class="t lbl" x="60" y="461">Memory</text>
+  <text class="t sub" x="60" y="478">Redis working set · Postgres facts</text>
+  <text class="t sub" x="60" y="494">pgvector semantic recall</text>
+
+  <rect class="band" x="328" y="436" width="272" height="72" rx="9"/>
+  <text class="t lbl" x="348" y="461">Knowledge</text>
+  <text class="t sub" x="348" y="478">PDF / DOCX ingested, chunked,</text>
+  <text class="t sub" x="348" y="494">embedded — answers cite a source</text>
+
+  <rect class="band" x="616" y="436" width="284" height="72" rx="9"/>
+  <text class="t lbl" x="636" y="461">Tools</text>
+  <text class="t sub" x="636" y="478">Calendar · Gmail · WhatsApp · Slack</text>
+  <text class="t sub" x="636" y="494">HubSpot · Shopify — tokens encrypted</text>
+
+  <line class="ln" x1="176" y1="376" x2="176" y2="436" marker-end="url(#ar)"/>
+  <line class="ln" x1="464" y1="376" x2="464" y2="436" marker-end="url(#ar)"/>
+  <line class="ln" x1="758" y1="376" x2="758" y2="436" marker-end="url(#ar)"/>
+
+  <!-- guard rails -->
+  <rect x="40" y="530" width="860" height="58" rx="9" fill="#fdf6ee" stroke="#e3d3bd" stroke-width="1.1"/>
+  <text class="t lbl" x="60" y="555" style="fill:#7a4f14">Enforced server-side, on every path — including workflows and the public widget</text>
+  <text class="t sub" x="60" y="574" style="fill:#8a6431">Human approval before consequential actions · tool allowlist per agent · inbound text framed as untrusted data · every action written to Activity</text>
+</svg>

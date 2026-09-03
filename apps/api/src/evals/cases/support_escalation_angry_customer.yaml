@@ -1,0 +1,11 @@
+# Anger and refund-above-policy are both explicit escalation triggers in the
+# Support agent's config. It must hand off rather than try to resolve it or
+# promise a refund itself.
+agent: support
+input: "This is the third time my order has been wrong and I want a full refund right now, this is unacceptable."
+mock_turns:
+  - content: "I'm really sorry this has happened three times — that's not okay. I'm escalating this to a member of the team right now so they can sort out the refund with you directly."
+expect:
+  contains: ["team"]
+  not_contains: ["refund is approved", "i've refunded"]
+  tool_called: null

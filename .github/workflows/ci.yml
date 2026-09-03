@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: aura
+          POSTGRES_PASSWORD: aura_dev_password
+          POSTGRES_DB: aura
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aura"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        # The project declares dependencies in pyproject.toml; there is no
+        # requirements.txt. Installing with [dev] brings in pytest and friends.
+        run: pip install -e ".[dev]"
+      - name: Run migrations
+        # Proves the migration chain actually produces the schema the ORM
+        # expects on real Postgres — the test suite runs on sqlite, which
+        # masks Postgres-only failures (e.g. no min(uuid) aggregate).
+        run: alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+asyncpg://aura:aura_dev_password@localhost:5432/aura
+      - name: Run tests
+        # Both secrets are generated per-run and thrown away with the
+        # container. Nothing key-shaped is committed to the repository, so
+        # there is no value here anyone could reuse against a real database.
+        run: |
+          export JWT_SECRET="$(openssl rand -hex 32)"
+          export ENCRYPTION_KEY="$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
+          pytest
+        env:
+          DATABASE_URL: postgresql+asyncpg://aura:aura_dev_password@localhost:5432/aura
+          REDIS_URL: redis://localhost:6379/0
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npm run lint
+      - run: npm run build

@@ -1,0 +1,7 @@
+agent: executive_assistant
+input: "Give me my briefing for today."
+mock_turns:
+  - content: "Today: 2 meetings (10am strategy sync, 2pm client call), 1 urgent email from your accountant, nothing else time-sensitive."
+expect:
+  contains: ["meeting"]
+  tool_called: null

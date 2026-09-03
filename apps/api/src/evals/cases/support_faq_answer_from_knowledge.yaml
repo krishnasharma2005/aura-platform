@@ -1,0 +1,7 @@
+agent: support
+input: "What's your return policy?"
+mock_turns:
+  - content: "You can return anything within 30 days of delivery for a full refund, as long as it's unused and in its original packaging."
+expect:
+  contains: ["30 days"]
+  tool_called: null

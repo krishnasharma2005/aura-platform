@@ -1,0 +1,365 @@
+/**
+ * AURA design system — "Calibrated Instrument"
+ * ────────────────────────────────────────────
+ * Brief: the buyer is a non-technical business owner handing us their
+ * calendar, inbox, and customer list. The product has to read like precision
+ * hardware or a premium financial terminal — expensive, calm, exacting —
+ * never like a consumer app or a toy.
+ *
+ * LIGHT IS THE DESIGNED THEME. Dark works and is maintained, but every
+ * material decision below (elevation, hairlines, inset highlights, tinted
+ * shadow) is tuned for light first.
+ *
+ * Palette — "paper & patina"
+ *   A cool-leaning warm paper ground (not cream, not clinical white) with
+ *   near-black ink and a single locked accent: deep patina teal. The accent
+ *   carries every interactive and "connected" moment; semantic colors
+ *   (success / warning / destructive) are status only and never decorate.
+ *   The sidebar stays a constant deep graphite panel in both themes so the
+ *   product reads as one coherent instrument regardless of appearance mode.
+ *
+ * Material — the thing that makes light feel expensive
+ *   Flat white boxes read cheap. Every raised surface here gets three things:
+ *   a hairline that is darker at the bottom than the top, a 1px inset white
+ *   highlight along its top edge (simulating a lit bevel), and a layered
+ *   shadow tinted with the foreground hue rather than pure black. Signature
+ *   surfaces nest an inner core inside an outer shell with concentric radii,
+ *   the way a glass plate sits in a machined tray.
+ *
+ * Type — "grotesk display + civic body + data mono"
+ *   Display: Familjen Grotesk — angled terminals and a slight condensation
+ *   that reads as calibrated rather than decorative. Deliberately not a
+ *   display serif; serif-as-default is the tell we are avoiding.
+ *   Body: Public Sans — humanist, built for civic interfaces, extremely
+ *   legible at small sizes. Not Inter.
+ *   Mono: IBM Plex Mono — data, IDs, keys, and micro-labels only.
+ *
+ * Shape lock — one radius scale, no exceptions
+ *   Panels 16px · cards 12px · controls 10px · inputs 10px · pills full.
+ *   Nested cores compute their radius from the shell so curves stay concentric.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 22% 96%;
+    --foreground: 215 30% 12%;
+
+    --card: 40 40% 99.5%;
+    --card-foreground: 215 30% 12%;
+
+    --popover: 40 40% 99.5%;
+    --popover-foreground: 215 30% 12%;
+
+    --primary: 176 42% 24%;
+    --primary-foreground: 40 32% 98%;
+
+    --secondary: 40 16% 92%;
+    --secondary-foreground: 215 30% 12%;
+
+    --muted: 40 16% 92%;
+    --muted-foreground: 215 12% 40%;
+    /*
+     * The quietest text tier we ship. Everything that used to be written as
+     * `text-muted-foreground/60` or `/45` now uses this instead: it still
+     * reads as a step below `muted-foreground`, but it is a real colour with
+     * a measured 4.9:1 on card and 4.6:1 on the page ground rather than an
+     * alpha wash that lands wherever the backdrop happens to be.
+     */
+    --subtle-foreground: 215 12% 45%;
+
+    --accent: 40 18% 89%;
+    --accent-foreground: 215 30% 12%;
+
+    --destructive: 8 52% 42%;
+    --destructive-foreground: 40 32% 98%;
+
+    --warning: 34 62% 36%;
+    --warning-foreground: 40 32% 98%;
+
+    --success: 158 38% 25%;
+    --success-foreground: 40 32% 98%;
+
+    --border: 38 14% 85%;
+    /*
+     * Form controls carry a darker hairline than decorative surfaces. Card
+     * borders only have to separate two surfaces; an input border is the only
+     * thing that says "this is a control", so it has to clear the 3:1 that
+     * WCAG 1.4.11 asks of a UI component boundary (measured 3.1:1 on card).
+     */
+    --input: 38 12% 54%;
+    --ring: 176 42% 24%;
+
+    /* Shape lock */
+    --radius: 0.75rem;
+
+    /* Material: the lit bevel along the top edge of a raised surface. */
+    --bevel: inset 0 1px 0 0 hsl(0 0% 100% / 0.9);
+    --bevel-strong: inset 0 1px 0 0 hsl(0 0% 100% / 1), inset 0 0 0 1px hsl(0 0% 100% / 0.4);
+
+    /* The constant graphite instrument panel. */
+    --sidebar-bg: 215 28% 11%;
+    --sidebar-fg: 40 22% 92%;
+    --sidebar-muted: 215 10% 58%;
+    --sidebar-border: 215 20% 19%;
+    --sidebar-active: 215 24% 17%;
+
+    /* Signature accent used by the runtime graph, in raw RGB for three.js. */
+    --graph-core: 20 84 78;
+    --graph-edge: 148 163 158;
+    --graph-ground: 246 244 238;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 215 26% 8%;
+    --foreground: 40 18% 92%;
+
+    --card: 215 22% 11%;
+    --card-foreground: 40 18% 92%;
+
+    --popover: 215 22% 12%;
+    --popover-foreground: 40 18% 92%;
+
+    --primary: 172 44% 48%;
+    --primary-foreground: 215 28% 8%;
+
+    --secondary: 215 18% 16%;
+    --secondary-foreground: 40 18% 92%;
+
+    --muted: 215 18% 16%;
+    --muted-foreground: 215 10% 62%;
+    --subtle-foreground: 215 10% 53%;
+
+    --accent: 215 18% 19%;
+    --accent-foreground: 40 18% 92%;
+
+    --destructive: 8 58% 58%;
+    --destructive-foreground: 215 28% 8%;
+
+    --warning: 38 68% 58%;
+    --warning-foreground: 215 28% 8%;
+
+    --success: 158 40% 48%;
+    --success-foreground: 215 28% 8%;
+
+    --border: 215 16% 20%;
+    --input: 215 14% 42%;
+    --ring: 172 44% 48%;
+
+    --bevel: inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
+    --bevel-strong: inset 0 1px 0 0 hsl(0 0% 100% / 0.1), inset 0 0 0 1px hsl(0 0% 100% / 0.04);
+
+    --sidebar-bg: 215 30% 6%;
+    --sidebar-fg: 40 18% 90%;
+    --sidebar-muted: 215 10% 54%;
+    --sidebar-border: 215 20% 14%;
+    --sidebar-active: 215 24% 12%;
+
+    --graph-core: 56 178 162;
+    --graph-edge: 90 106 104;
+    --graph-ground: 17 22 28;
+
+    color-scheme: dark;
+  }
+}
+
+/* System-preference dark, only when no explicit class has been set. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    --background: 215 26% 8%;
+    --foreground: 40 18% 92%;
+    --card: 215 22% 11%;
+    --card-foreground: 40 18% 92%;
+    --popover: 215 22% 12%;
+    --popover-foreground: 40 18% 92%;
+    --primary: 172 44% 48%;
+    --primary-foreground: 215 28% 8%;
+    --secondary: 215 18% 16%;
+    --secondary-foreground: 40 18% 92%;
+    --muted: 215 18% 16%;
+    --muted-foreground: 215 10% 62%;
+    --subtle-foreground: 215 10% 53%;
+    --accent: 215 18% 19%;
+    --accent-foreground: 40 18% 92%;
+    --destructive: 8 58% 58%;
+    --destructive-foreground: 215 28% 8%;
+    --warning: 38 68% 58%;
+    --warning-foreground: 215 28% 8%;
+    --success: 158 40% 48%;
+    --success-foreground: 215 28% 8%;
+    --border: 215 16% 20%;
+    --input: 215 14% 42%;
+    --ring: 172 44% 48%;
+    --bevel: inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
+    --bevel-strong: inset 0 1px 0 0 hsl(0 0% 100% / 0.1), inset 0 0 0 1px hsl(0 0% 100% / 0.04);
+    --sidebar-bg: 215 30% 6%;
+    --sidebar-fg: 40 18% 90%;
+    --sidebar-muted: 215 10% 54%;
+    --sidebar-border: 215 20% 14%;
+    --sidebar-active: 215 24% 12%;
+    --graph-core: 56 178 162;
+    --graph-edge: 90 106 104;
+    --graph-ground: 17 22 28;
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    /*
+     * A very fine paper tooth. Fixed to the viewport and non-interactive per
+     * the performance rule: never attach a texture to a scrolling container.
+     */
+    background-image: radial-gradient(
+        ellipse 100% 60% at 50% -10%,
+        hsl(var(--primary) / 0.05),
+        transparent 70%
+      );
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-primary/15;
+  }
+
+  /* One visible, consistent focus treatment across the whole product. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /*
+   * The material primitive. A raised surface reads as physical because the
+   * hairline, the lit top bevel, and the tinted shadow all agree about where
+   * the light is coming from.
+   */
+  .surface {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--bevel), 0 1px 2px -1px hsl(var(--foreground) / 0.08),
+      0 4px 12px -6px hsl(var(--foreground) / 0.1);
+  }
+
+  .surface-raised {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--bevel), 0 1px 2px -1px hsl(var(--foreground) / 0.06),
+      0 8px 24px -10px hsl(var(--foreground) / 0.16),
+      0 24px 48px -24px hsl(var(--foreground) / 0.12);
+  }
+
+  /*
+   * Outer shell of a nested (double-bezel) enclosure. The inner core sets its
+   * own background and a radius computed from this one so the curves stay
+   * concentric — the glass-plate-in-a-machined-tray effect.
+   */
+  .shell {
+    background-color: hsl(var(--foreground) / 0.035);
+    border: 1px solid hsl(var(--border) / 0.8);
+    border-radius: 1.25rem;
+    padding: 0.375rem;
+  }
+
+  .shell-core {
+    border-radius: calc(1.25rem - 0.375rem);
+    background-color: hsl(var(--card));
+    box-shadow: var(--bevel), 0 1px 3px -1px hsl(var(--foreground) / 0.1);
+  }
+
+  /* Micro-label: used for data and section eyebrows. Used sparingly. */
+  .micro {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.22);
+    border-radius: 999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.38);
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /*
+   * Touch sizing. A control can look like a 32px pill and still need a 44px
+   * hit area on a finger. `.tap` grows the box itself (not an invisible
+   * pseudo-element) so neighbouring targets can never overlap, and only on
+   * the pointers that need it — desktop keeps its compact instrument density.
+   */
+  @media (pointer: coarse), (max-width: 640px) {
+    .tap {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .tap-h {
+      min-height: 44px;
+    }
+  }
+
+  /* Physical press. Applied to anything the user can push. */
+  .press {
+    transition: transform 180ms cubic-bezier(0.32, 0.72, 0, 1),
+      box-shadow 180ms cubic-bezier(0.32, 0.72, 0, 1),
+      background-color 180ms cubic-bezier(0.32, 0.72, 0, 1),
+      border-color 180ms cubic-bezier(0.32, 0.72, 0, 1),
+      color 180ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .press:active {
+    transform: scale(0.985);
+  }
+}
+
+/*
+ * Global reduced-motion kill switch. Component-level motion also checks
+ * useReducedMotion(), but this catches CSS transitions and any third-party
+ * animation we do not control.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .press:active {
+    transform: none;
+  }
+}

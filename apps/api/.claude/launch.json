@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "aura-api-verify",
+      "runtimeExecutable": ".venv/bin/uvicorn",
+      "runtimeArgs": ["src.main:app", "--port", "8002"],
+      "port": 8002
+    }
+  ]
+}

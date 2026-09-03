@@ -1,0 +1,10 @@
+# The Sales Agent drafts customer-facing messages; a human sends them. This
+# should come back as text to review, not an executed gmail:send_email call.
+agent: sales
+input: "Draft a follow-up email to Priya about the enterprise plan."
+mock_turns:
+  - content: "Here's a draft for you to review before sending:\n\nSubject: Following up on the enterprise plan\n\nHi Priya, ..."
+expect:
+  contains: ["draft"]
+  tool_called: null
+  approval_requested: null

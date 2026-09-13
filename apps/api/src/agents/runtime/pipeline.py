@@ -26,6 +26,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents import approvals
+from src.agents import business_context as business_context_service
+from src.agents.runtime.context_projector import project_agent_business_context
 from src.agents.runtime.effective_config import get_effective_agent_config
 from src.agents.runtime.loader import AgentConfig
 from src.ai_gateway.gateway import AIGateway
@@ -177,7 +179,13 @@ async def run_agent(
         if results:
             knowledge_context = "\n\n".join(f"[{r.source}] {r.content}" for r in results)
 
-    messages = _build_messages(config, recent_turns, facts, knowledge_context, user_message, channel)
+    business_context = project_agent_business_context(
+        await business_context_service.get_context(db, org_id), agent_slug
+    )
+
+    messages = _build_messages(
+        config, recent_turns, facts, knowledge_context, business_context, user_message, channel
+    )
     tool_schemas = [get_tool(name).to_llm_schema() for name in config.allowed_tools if get_tool(name)]
 
     tool_calls_made: list[str] = []
@@ -309,10 +317,13 @@ def _build_messages(
     recent_turns: list[dict[str, Any]],
     facts: list[Any],
     knowledge_context: str,
+    business_context: str,
     user_message: str,
     channel: ConversationChannel = ConversationChannel.dashboard,
 ) -> list[dict[str, Any]]:
     system_parts = [config.system_prompt]
+    if business_context:
+        system_parts.append(business_context)
     if channel in _EXTERNAL_CHANNELS:
         system_parts.append(
             "You are talking to a member of the public who contacted this business "

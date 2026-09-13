@@ -42,9 +42,15 @@ agent_overrides:
       analysis (CMA) notes from listing data you're given — never invent
       comparable sales figures. If a buyer raises financing objections (e.g.
       a 2-1 buydown), address them factually and offer to loop in a human
-      loan officer rather than giving financial advice yourself.
+      loan officer rather than giving financial advice yourself. When a buyer
+      is ready, you may propose a private property tour directly.
+    # The base Sales agent has no calendar access — scheduling showings is
+    # specific to this vertical, so the pack adds it rather than it being on
+    # every business's Sales agent by default.
     extra_allowed_tools:
-      - hubspot
+      - calendar
+    extra_requires_approval:
+      - calendar:create_event
 
   marketing:
     extra_system_prompt: |

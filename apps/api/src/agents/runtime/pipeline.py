@@ -26,7 +26,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents import approvals
-from src.agents.runtime.loader import AgentConfig, load_agent_config
+from src.agents.runtime.effective_config import get_effective_agent_config
+from src.agents.runtime.loader import AgentConfig
 from src.ai_gateway.gateway import AIGateway
 from src.ai_gateway.providers.base import LLMResponse
 from src.conversations import service as conversation_service
@@ -121,7 +122,7 @@ async def run_agent(
     channel: ConversationChannel = ConversationChannel.dashboard,
     contact_id: uuid.UUID | None = None,
 ) -> AgentRunResult:
-    config = load_agent_config(agent_slug)
+    config, pack_provenance = await get_effective_agent_config(db, org_id, agent_slug)
 
     # A human may have taken over this specific thread (see the "Take over"
     # action in the dashboard). When they have, the agent must not
@@ -279,6 +280,7 @@ async def run_agent(
                 "pending_approvals": [p.summary for p in pending_approvals],
                 "user_message": user_message,
                 "response": final_text,
+                "packs_applied": pack_provenance.applied_pack_ids,
             },
         },
     )

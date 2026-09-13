@@ -1,0 +1,100 @@
+# Reference Business Pack — the schema's first real example.
+# Ported from dist/mesnium-business/packs-registry.js (BUILTIN_REAL_ESTATE_PACK)
+# in the openclaw/claw fork, adapted to this codebase's six base agents and
+# its workflow_definitions shape (src/workflows/models.py).
+#
+# Activating this pack does not (yet) do anything by itself — see the module
+# docstring in src/agents/runtime/pack_loader.py for what's wired and what
+# isn't. This file exists so the schema has a real, validated example beyond
+# an empty registry.
+id: pack_real_estate
+name: Real Estate Business Pack
+version: 1.0.0
+category: real_estate
+description: >-
+  Tunes the base agent workforce for real estate brokerages, property teams,
+  and residential advisory — buyer intake, showing coordination, and
+  Fair-Housing-aware marketing copy.
+
+capability_requirements:
+  - calendar
+  - crm
+
+agent_overrides:
+  receptionist:
+    extra_system_prompt: |
+      This business is a real estate brokerage. When a prospective buyer or
+      seller reaches out:
+      - Ask for their budget range, desired location/neighborhood, and target
+        move-in timeline before anything else.
+      - Property showings need at least 2 hours' notice — never confirm a
+        same-day showing without flagging it for a human to double-check
+        agent availability.
+      - Never state a property's final sale price, quote legal advice, or
+        promise financing terms — hand those off to a human agent.
+    extra_requires_approval:
+      - calendar:create_event
+
+  sales:
+    extra_system_prompt: |
+      Qualify buyers on: pre-approval status, budget, desired
+      neighborhoods/property type, and timeline. Draft comparable market
+      analysis (CMA) notes from listing data you're given — never invent
+      comparable sales figures. If a buyer raises financing objections (e.g.
+      a 2-1 buydown), address them factually and offer to loop in a human
+      loan officer rather than giving financial advice yourself.
+    extra_allowed_tools:
+      - hubspot
+
+  marketing:
+    extra_system_prompt: |
+      All copy must comply with Fair Housing rules: never reference or imply
+      preference based on race, religion, family status, disability, or
+      national origin — describe the property and neighborhood amenities,
+      never the "type" of person who belongs there. Lean on lifestyle framing
+      (walkability, schools, commute) for listing and open-house campaigns.
+
+  executive_assistant:
+    extra_system_prompt: |
+      When compiling briefings for this business, prioritize: closed sales
+      volume, average days on market (DOM), active listing pipeline, and
+      commission forecasting over generic inbox/calendar summaries.
+
+# Not yet seeded on activation (see pack_loader.py docstring) — shaped to
+# match workflows/models.py + workflows/templates.py so wiring it up later is
+# a seeding function, not a schema change.
+workflow_templates:
+  - slug: real-estate-lead-followup
+    name: Real Estate Lead Follow-Up & Showing Coordination
+    description: >-
+      Receptionist captures buyer criteria, Sales prepares matching
+      properties and financing notes, then a showing is proposed through the
+      calendar tool (subject to the normal approval gate).
+    trigger_type: event
+    trigger_config:
+      event: lead.received
+    steps:
+      - id: step_intake_qualify
+        name: Receptionist Intake & Qualification
+        type: agent
+        agent_slug: receptionist
+        input:
+          task: >-
+            Extract prospective buyer criteria: budget range, desired
+            bedrooms/bathrooms, preferred neighborhoods, and target move-in
+            timeline.
+      - id: step_sales_prep
+        name: Sales Preparation
+        type: agent
+        agent_slug: sales
+        input:
+          task: >-
+            Compile matching property comps and draft a tailored viewing
+            itinerary and financing consultation notes.
+      - id: step_calendar_booking
+        name: Propose Private Property Tour
+        type: tool
+        tool: calendar
+        input:
+          action: create_event
+          title: Private Property Tour & Buyer Consultation

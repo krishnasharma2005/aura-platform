@@ -20,6 +20,7 @@ is never part of the prompt the model can influence.
 
 import json
 import uuid
+from dataclasses import dataclass
 from typing import Any
 
 from pydantic import BaseModel
@@ -105,6 +106,22 @@ class AgentRunResult(BaseModel):
     # chat_mode itself.
     options: list[ChatOption] = []
     node_id: str | None = None
+
+
+@dataclass
+class RunContext:
+    """Passed to every `Tool.execute()` call as `_context`, alongside whatever
+    model-supplied arguments survived `validate_arguments`. Every existing
+    tool's `execute(self, db, org_id, **kwargs)` ignores kwargs it doesn't
+    recognize, so this is purely additive. Only `DelegateTool` (tools/delegate.py)
+    reads it today — it needs the calling conversation's id/channel/contact and
+    the *same* `AIGateway` instance (not a fresh one) so a delegated agent call
+    shares the caller's provider connection and, in tests, its FakeGateway."""
+
+    conversation_id: str
+    channel: ConversationChannel
+    contact_id: uuid.UUID | None
+    gateway: AIGateway
 
 
 # Shown in place of an agent reply while a human has taken over the
@@ -250,7 +267,10 @@ async def run_agent(
                 )
                 continue
 
-            result = await tool.execute(db, org_id, **arguments)
+            run_context = RunContext(
+                conversation_id=conversation_id, channel=channel, contact_id=contact_id, gateway=gateway
+            )
+            result = await tool.execute(db, org_id, _context=run_context, **arguments)
             tool_calls_made.append(tool_call.name)
             messages.append(_tool_message(tool_call.id, result))
 

@@ -12,6 +12,7 @@ import {
   Search,
   ShoppingBag,
   Slack,
+  Users,
   Wrench,
   XCircle,
   type LucideIcon,
@@ -34,6 +35,7 @@ const TOOL_MAP: { match: string; icon: LucideIcon; label: string }[] = [
   { match: "hubspot", icon: Building2, label: "Looked up your CRM" },
   { match: "crm", icon: Building2, label: "Looked up your CRM" },
   { match: "shopify", icon: ShoppingBag, label: "Checked your store" },
+  { match: "delegate", icon: Users, label: "Consulted a specialist" },
   { match: "knowledge", icon: Search, label: "Read your documents" },
   { match: "search", icon: Search, label: "Read your documents" },
 ];

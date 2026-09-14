@@ -12,7 +12,8 @@ export type AgentSlug =
   | "marketing"
   | "executive-assistant"
   | "support"
-  | "ecommerce";
+  | "ecommerce"
+  | "chief-of-staff";
 
 // ---- Auth ----------------------------------------------------------------
 

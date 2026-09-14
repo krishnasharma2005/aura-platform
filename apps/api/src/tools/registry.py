@@ -2,6 +2,7 @@
 
 from src.tools.base import Tool
 from src.tools.calendar import CalendarTool
+from src.tools.delegate import DelegateTool
 from src.tools.gmail import GmailTool
 from src.tools.hubspot import HubSpotTool
 from src.tools.shopify import ShopifyTool
@@ -17,6 +18,7 @@ TOOL_REGISTRY: dict[str, Tool] = {
         SlackTool(),
         HubSpotTool(),
         ShopifyTool(),
+        DelegateTool(),
     )
 }
 

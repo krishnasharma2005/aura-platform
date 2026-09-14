@@ -15,6 +15,7 @@ active:
    reattaches it when converting the "tool" role message that follows.
 """
 
+import base64
 import json
 from typing import Any
 
@@ -74,10 +75,25 @@ class GeminiProvider(LLMProvider):
             config=types.GenerateContentConfig(**config_kwargs) if config_kwargs else None,
         )
 
-        tool_calls = [
-            ToolCall(id=fc.id or f"call_{fc.name}_{i}", name=fc.name, arguments=fc.args or {})
-            for i, fc in enumerate(response.function_calls or [])
-        ]
+        # Walk parts directly rather than the response.function_calls
+        # convenience property — that property returns bare FunctionCall
+        # objects and drops thought_signature, which lives on the parent Part
+        # and newer models (e.g. gemini-3.6-flash) require to be echoed back
+        # verbatim on any later turn that replays this call, or the API
+        # rejects the request with a 400.
+        tool_calls = []
+        if candidate_for_calls := (response.candidates[0] if response.candidates else None):
+            parts = candidate_for_calls.content.parts if candidate_for_calls.content else []
+            for i, part in enumerate(parts or []):
+                if part.function_call is None:
+                    continue
+                fc = part.function_call
+                raw: dict[str, Any] = {}
+                if part.thought_signature:
+                    raw["thought_signature_b64"] = base64.b64encode(part.thought_signature).decode("ascii")
+                tool_calls.append(
+                    ToolCall(id=fc.id or f"call_{fc.name}_{i}", name=fc.name, arguments=fc.args or {}, raw=raw)
+                )
 
         candidate = response.candidates[0] if response.candidates else None
         finish_reason = str(candidate.finish_reason.value) if candidate and candidate.finish_reason else None
@@ -138,7 +154,22 @@ def _convert_messages(messages: list[dict[str, Any]]) -> tuple[str | None, list[
                 name = tc["function"]["name"]
                 args = json.loads(tc["function"]["arguments"] or "{}")
                 call_id_to_name[call_id] = name
-                parts.append(types.Part(function_call=types.FunctionCall(id=call_id, name=name, args=args)))
+                # Reattach thought_signature if this call originated from
+                # Gemini in the first place (see ToolCall.raw's docstring) —
+                # required by newer models on replay, absent entirely for a
+                # history turn OpenAI produced (e.g. after switching
+                # AI_PROVIDER mid-conversation), which is fine: the field is
+                # optional and this just omits it.
+                thought_signature = None
+                raw_b64 = (tc.get("_raw") or {}).get("thought_signature_b64")
+                if raw_b64:
+                    thought_signature = base64.b64decode(raw_b64)
+                parts.append(
+                    types.Part(
+                        function_call=types.FunctionCall(id=call_id, name=name, args=args),
+                        thought_signature=thought_signature,
+                    )
+                )
             contents.append(types.Content(role="model", parts=parts))
 
         elif role == "tool":

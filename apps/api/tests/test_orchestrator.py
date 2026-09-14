@@ -123,6 +123,30 @@ async def test_delegate_tool_calls_run_agent_with_a_derived_sub_conversation(
     assert kwargs["contact_id"] is None
 
 
+async def test_delegate_tool_reports_a_specialists_aura_error_instead_of_crashing(
+    db_session: AsyncSession, user_and_org, monkeypatch
+):
+    """Regression: a specialist's own failure (e.g. an unconnected
+    integration) must come back as a ToolResult the Chief of Staff can relay
+    in its own reply, not an exception that 500s the whole delegated turn."""
+    from src.core.exceptions import ProviderNotConfiguredError
+
+    _, org, _ = user_and_org
+
+    fake_run_agent = AsyncMock(side_effect=ProviderNotConfiguredError("Please connect Google first."))
+    monkeypatch.setattr(pipeline_module, "run_agent", fake_run_agent)
+
+    gateway = FakeGateway([])
+    context = RunContext(conversation_id="conv-6", channel=ConversationChannel.dashboard, contact_id=None, gateway=gateway)
+
+    result = await DelegateTool().execute(
+        db_session, org.id, action="executive_assistant", task="What's on the calendar?", _context=context
+    )
+
+    assert result.success is False
+    assert "Please connect Google first." in result.message
+
+
 async def test_delegate_tool_rejects_self_delegation_and_unknown_agents(db_session: AsyncSession, user_and_org):
     _, org, _ = user_and_org
     gateway = FakeGateway([])

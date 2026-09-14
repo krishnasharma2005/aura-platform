@@ -88,7 +88,7 @@ export const AGENTS: AgentDefinition[] = [
     composerPlaceholder: "Ask Marketing to draft something…",
   },
   {
-    slug: "executive-assistant",
+    slug: "executive_assistant",
     displayName: "Executive Assistant",
     shortLabel: "Exec. Assistant",
     tagline: "Manages your calendar, inbox triage, and daily priorities.",

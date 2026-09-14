@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str | None = Field(
         default=None, description="Google AI Studio Gemini API key. Free tier available."
     )
-    GEMINI_CHAT_MODEL: str = Field(default="gemini-2.0-flash")
+    GEMINI_CHAT_MODEL: str = Field(default="gemini-3.6-flash")
     # gemini-embedding-001 supports a configurable output size (Matryoshka
     # representation learning) — set to memory.models.EMBEDDING_DIM so vectors
     # from either provider live in the same pgvector column shape. Switching

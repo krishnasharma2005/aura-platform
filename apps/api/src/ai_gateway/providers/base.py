@@ -12,6 +12,13 @@ class ToolCall(BaseModel):
     id: str
     name: str
     arguments: dict[str, Any]
+    # Opaque, provider-specific data that must be echoed back verbatim when
+    # this call (and its result) is replayed into a later turn's history —
+    # e.g. Gemini's `thought_signature`, required on any function_call part
+    # sent back to the API or it rejects the request. OpenAI leaves this
+    # empty. Round-tripped through pipeline.py's _serialize_tool_calls() and
+    # stored in Message.tool_calls, so it survives a conversation reload.
+    raw: dict[str, Any] = {}
 
 
 class Usage(BaseModel):

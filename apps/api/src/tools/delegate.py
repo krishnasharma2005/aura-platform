@@ -14,11 +14,12 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.exceptions import AuraError
 from src.tools.base import Tool, ToolResult
 
 # The six specialist agents a request can be handed to. Deliberately not the
 # Chief of Staff itself — see the self-delegation guard in execute().
-_DELEGATABLE_SLUGS = ("receptionist", "sales", "marketing", "executive-assistant", "support", "ecommerce")
+_DELEGATABLE_SLUGS = ("receptionist", "sales", "marketing", "executive_assistant", "support", "ecommerce")
 
 
 class DelegateTool(Tool):
@@ -68,16 +69,29 @@ class DelegateTool(Tool):
         from src.agents.runtime.pipeline import run_agent
 
         sub_conversation_id = f"{context.conversation_id}::{target_slug}"
-        result = await run_agent(
-            db,
-            context.gateway,
-            org_id,
-            target_slug,
-            sub_conversation_id,
-            task,
-            channel=context.channel,
-            contact_id=context.contact_id,
-        )
+        try:
+            result = await run_agent(
+                db,
+                context.gateway,
+                org_id,
+                target_slug,
+                sub_conversation_id,
+                task,
+                channel=context.channel,
+                contact_id=context.contact_id,
+            )
+        except AuraError as exc:
+            # A specialist's own failure (e.g. an unconnected integration)
+            # must not crash the Chief of Staff's whole turn — every other
+            # tool in this codebase reports its own failures as a message the
+            # model can relay, not an exception, and delegation is no
+            # different: the model should say "I checked with X and it
+            # couldn't do that because ..." rather than the request 500ing.
+            return ToolResult(
+                success=False,
+                data={"agent": target_slug},
+                message=f"I checked with the {target_slug.replace('_', ' ')}, but: {exc.message}",
+            )
 
         return ToolResult(
             success=True,

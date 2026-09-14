@@ -10,7 +10,7 @@ export type AgentSlug =
   | "receptionist"
   | "sales"
   | "marketing"
-  | "executive-assistant"
+  | "executive_assistant"
   | "support"
   | "ecommerce"
   | "chief-of-staff";

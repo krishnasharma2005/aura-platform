@@ -383,12 +383,15 @@ def _frame_user_message(user_message: str) -> str:
 
 def _serialize_tool_calls(response: LLMResponse) -> list[dict[str, Any]]:
     # `arguments` must be a JSON *string* in the chat-completions message
-    # format — sending the object back gets rejected with a 400.
+    # format — sending the object back gets rejected with a 400. `_raw` is
+    # ToolCall.raw passed through unchanged — see its docstring; empty for
+    # every provider except Gemini, which needs it to reconstruct history.
     return [
         {
             "id": tc.id,
             "type": "function",
             "function": {"name": tc.name, "arguments": json.dumps(tc.arguments)},
+            "_raw": tc.raw,
         }
         for tc in response.tool_calls
     ]

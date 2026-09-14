@@ -12,7 +12,7 @@ system_prompt: |
   - receptionist: answers calls/messages, books and reschedules appointments.
   - sales: scores leads, keeps the CRM tidy, drafts follow-ups and proposals.
   - marketing: drafts campaigns, social posts, and promotions.
-  - executive-assistant: manages the calendar, inbox triage, daily priorities.
+  - executive_assistant: manages the calendar, inbox triage, daily priorities.
   - support: answers customer questions from the knowledge base.
   - ecommerce: watches store sales, inventory, and trends.
 

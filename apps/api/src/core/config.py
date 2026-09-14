@@ -33,9 +33,41 @@ class Settings(BaseSettings):
         ),
     )
 
+    # --- AI provider (src/ai_gateway/) ---
+    # Which LLMProvider AIGateway talks to by default. "openai" or "gemini" —
+    # see src/ai_gateway/gateway.py's _PROVIDERS. Both providers normalize into
+    # the same LLMResponse/ToolCall shape, so nothing above the gateway (the
+    # agent pipeline, tools, approval gate) needs to know or care which one is
+    # active. A future automatic-fallback chain (try the next provider if one
+    # is down) would build on top of this same _PROVIDERS registry rather than
+    # replacing it.
+    AI_PROVIDER: str = Field(default="openai", description="'openai' or 'gemini'.")
+
     OPENAI_API_KEY: str | None = Field(default=None, description="OpenAI API key. Unset disables AI features.")
     OPENAI_CHAT_MODEL: str = Field(default="gpt-4o-mini")
     OPENAI_EMBEDDING_MODEL: str = Field(default="text-embedding-3-small")
+
+    GEMINI_API_KEY: str | None = Field(
+        default=None, description="Google AI Studio Gemini API key. Free tier available."
+    )
+    GEMINI_CHAT_MODEL: str = Field(default="gemini-2.0-flash")
+    # gemini-embedding-001 supports a configurable output size (Matryoshka
+    # representation learning) — set to memory.models.EMBEDDING_DIM so vectors
+    # from either provider live in the same pgvector column shape. Switching
+    # AI_PROVIDER after the knowledge base has already been embedded with the
+    # other provider still requires re-ingesting documents; the two providers'
+    # vector spaces aren't compatible just because the dimension matches.
+    GEMINI_EMBEDDING_MODEL: str = Field(default="gemini-embedding-001")
+
+    @property
+    def ai_provider_configured(self) -> bool:
+        """Whether the currently-selected AI_PROVIDER has a key set. Callers
+        that only construct an AIGateway when AI is usable (workflows/runner.py,
+        scripts/seed_demo.py) check this instead of OPENAI_API_KEY directly, so
+        they work correctly under either provider."""
+        if self.AI_PROVIDER == "gemini":
+            return bool(self.GEMINI_API_KEY)
+        return bool(self.OPENAI_API_KEY)
 
     MAX_UPLOAD_BYTES: int = Field(
         default=20 * 1024 * 1024,

@@ -91,7 +91,7 @@ class _SeedGateway:
 
     def __init__(self) -> None:
         self._settings = get_settings()
-        self._real = AIGateway() if self._settings.OPENAI_API_KEY else None
+        self._real = AIGateway() if self._settings.ai_provider_configured else None
 
     @property
     def embeddings_are_real(self) -> bool:

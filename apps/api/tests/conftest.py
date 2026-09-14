@@ -38,6 +38,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents.approvals import ToolApproval  # noqa: F401  (registers the table on Base.metadata)
+from src.agents.business_context import BusinessContext  # noqa: F401  (same)
+from src.agents.entitlements import OrgPackEntitlement  # noqa: F401  (same)
 from src.conversations.models import Contact, Conversation, Message  # noqa: F401  (same)
 from src.core.db import Base, engine, async_session_factory
 from src.core.security import create_access_token

@@ -12,10 +12,12 @@ from src.api.v1.analytics import router as analytics_router
 from src.api.v1.approvals import router as approvals_router
 from src.api.v1.audit import router as audit_router
 from src.api.v1.auth import router as auth_router
+from src.api.v1.business_context import router as business_context_router
 from src.api.v1.conversations import router as conversations_router
 from src.api.v1.integrations import router as integrations_router
 from src.api.v1.knowledge import router as knowledge_router
 from src.api.v1.organizations import router as organizations_router
+from src.api.v1.packs import router as packs_router
 from src.api.v1.public import router as public_router
 from src.api.v1.workflows import router as workflows_router
 from src.core.config import get_settings
@@ -124,6 +126,8 @@ def create_app() -> FastAPI:
     app.include_router(conversations_router, prefix="/api/v1")
     app.include_router(workflows_router, prefix="/api/v1")
     app.include_router(analytics_router, prefix="/api/v1")
+    app.include_router(business_context_router, prefix="/api/v1")
+    app.include_router(packs_router, prefix="/api/v1")
     # The only unauthenticated router in the product — see api/v1/public.py.
     app.include_router(public_router, prefix="/api/v1")
 

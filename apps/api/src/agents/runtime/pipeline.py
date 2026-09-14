@@ -20,13 +20,17 @@ is never part of the prompt the model can influence.
 
 import json
 import uuid
+from dataclasses import dataclass
 from typing import Any
 
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents import approvals
-from src.agents.runtime.loader import AgentConfig, load_agent_config
+from src.agents import business_context as business_context_service
+from src.agents.runtime.context_projector import project_agent_business_context
+from src.agents.runtime.effective_config import get_effective_agent_config
+from src.agents.runtime.loader import AgentConfig
 from src.ai_gateway.gateway import AIGateway
 from src.ai_gateway.providers.base import LLMResponse
 from src.conversations import service as conversation_service
@@ -104,6 +108,22 @@ class AgentRunResult(BaseModel):
     node_id: str | None = None
 
 
+@dataclass
+class RunContext:
+    """Passed to every `Tool.execute()` call as `_context`, alongside whatever
+    model-supplied arguments survived `validate_arguments`. Every existing
+    tool's `execute(self, db, org_id, **kwargs)` ignores kwargs it doesn't
+    recognize, so this is purely additive. Only `DelegateTool` (tools/delegate.py)
+    reads it today — it needs the calling conversation's id/channel/contact and
+    the *same* `AIGateway` instance (not a fresh one) so a delegated agent call
+    shares the caller's provider connection and, in tests, its FakeGateway."""
+
+    conversation_id: str
+    channel: ConversationChannel
+    contact_id: uuid.UUID | None
+    gateway: AIGateway
+
+
 # Shown in place of an agent reply while a human has taken over the
 # conversation. Deliberately channel-neutral: it reads fine whether it's
 # echoed back to a website visitor, sent over WhatsApp, or shown in the
@@ -121,7 +141,7 @@ async def run_agent(
     channel: ConversationChannel = ConversationChannel.dashboard,
     contact_id: uuid.UUID | None = None,
 ) -> AgentRunResult:
-    config = load_agent_config(agent_slug)
+    config, pack_provenance = await get_effective_agent_config(db, org_id, agent_slug)
 
     # A human may have taken over this specific thread (see the "Take over"
     # action in the dashboard). When they have, the agent must not
@@ -176,7 +196,13 @@ async def run_agent(
         if results:
             knowledge_context = "\n\n".join(f"[{r.source}] {r.content}" for r in results)
 
-    messages = _build_messages(config, recent_turns, facts, knowledge_context, user_message, channel)
+    business_context = project_agent_business_context(
+        await business_context_service.get_context(db, org_id), agent_slug
+    )
+
+    messages = _build_messages(
+        config, recent_turns, facts, knowledge_context, business_context, user_message, channel
+    )
     tool_schemas = [get_tool(name).to_llm_schema() for name in config.allowed_tools if get_tool(name)]
 
     tool_calls_made: list[str] = []
@@ -241,7 +267,10 @@ async def run_agent(
                 )
                 continue
 
-            result = await tool.execute(db, org_id, **arguments)
+            run_context = RunContext(
+                conversation_id=conversation_id, channel=channel, contact_id=contact_id, gateway=gateway
+            )
+            result = await tool.execute(db, org_id, _context=run_context, **arguments)
             tool_calls_made.append(tool_call.name)
             messages.append(_tool_message(tool_call.id, result))
 
@@ -279,6 +308,7 @@ async def run_agent(
                 "pending_approvals": [p.summary for p in pending_approvals],
                 "user_message": user_message,
                 "response": final_text,
+                "packs_applied": pack_provenance.applied_pack_ids,
             },
         },
     )
@@ -307,10 +337,13 @@ def _build_messages(
     recent_turns: list[dict[str, Any]],
     facts: list[Any],
     knowledge_context: str,
+    business_context: str,
     user_message: str,
     channel: ConversationChannel = ConversationChannel.dashboard,
 ) -> list[dict[str, Any]]:
     system_parts = [config.system_prompt]
+    if business_context:
+        system_parts.append(business_context)
     if channel in _EXTERNAL_CHANNELS:
         system_parts.append(
             "You are talking to a member of the public who contacted this business "

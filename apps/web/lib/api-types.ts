@@ -12,7 +12,8 @@ export type AgentSlug =
   | "marketing"
   | "executive-assistant"
   | "support"
-  | "ecommerce";
+  | "ecommerce"
+  | "chief-of-staff";
 
 // ---- Auth ----------------------------------------------------------------
 
@@ -310,6 +311,69 @@ export interface AnalyticsSummary {
   bookings_made?: number;
   /** Whole US dollars, not cents. */
   revenue_recovered?: number;
+}
+
+// ---- Business context ------------------------------------------------------
+
+/**
+ * The org's own business profile, grounding every agent's prompt in facts
+ * about this specific business. Sections beyond what's below (offerings,
+ * policies, operations, contacts) are genuinely open-ended JSON on the
+ * backend — the UI edits the highest-value scalar fields for now and leaves
+ * the rest reachable only via the API, rather than build a full nested
+ * array editor before anyone's asked for one.
+ */
+export interface BusinessIdentity {
+  business_name?: string;
+  industry?: string;
+  description?: string;
+  location?: string;
+  operating_hours?: string;
+}
+
+export interface BusinessBrand {
+  tone?: string;
+  communication_style?: string;
+}
+
+export interface BusinessCustomers {
+  target_customer_description?: string;
+}
+
+export interface BusinessContext {
+  identity: BusinessIdentity;
+  offerings: Record<string, unknown>;
+  customers: BusinessCustomers;
+  brand: BusinessBrand;
+  policies: Record<string, unknown>;
+  operations: Record<string, unknown>;
+  contacts: Record<string, unknown>;
+  updated_at?: string | null;
+}
+
+export interface BusinessContextUpdateRequest {
+  identity?: BusinessIdentity;
+  customers?: BusinessCustomers;
+  brand?: BusinessBrand;
+}
+
+// ---- Packs -----------------------------------------------------------------
+
+/**
+ * A vertical add-on (e.g. "Real Estate") that tunes the base agents with
+ * extra prompt guidance, tool access, and approval requirements. `active`
+ * reflects this organization's entitlement, not the pack's own definition —
+ * see the backend's agents/entitlements.py. No billing is wired yet:
+ * activating one is currently a free toggle (see settings/packs).
+ */
+export interface Pack {
+  id: string;
+  name: string;
+  version: string;
+  category: string;
+  description: string;
+  capability_requirements: string[];
+  active: boolean;
 }
 
 // ---- Workflows -------------------------------------------------------------

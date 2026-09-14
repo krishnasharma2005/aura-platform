@@ -6,6 +6,7 @@ import {
   CalendarClock,
   LifeBuoy,
   ShoppingBag,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,6 +23,22 @@ export interface AgentDefinition {
 }
 
 export const AGENTS: AgentDefinition[] = [
+  {
+    slug: "chief-of-staff",
+    displayName: "Chief of Staff",
+    shortLabel: "Chief of Staff",
+    tagline: "One place to ask anything — delegates to the right agent and brings back the answer.",
+    icon: Users,
+    emptyStateTitle: "Ask about anything your team handles",
+    emptyStateBody:
+      "Your Chief of Staff figures out which specialist can help — or asks a few of them — and brings back one clear answer. No need to know which agent handles what.",
+    suggestedPrompts: [
+      "Draft a win-back campaign for customers who haven't booked in 6 months.",
+      "What's on my calendar tomorrow, and do any leads need a follow-up?",
+      "Summarize what happened across the business this week.",
+    ],
+    composerPlaceholder: "Ask your Chief of Staff anything…",
+  },
   {
     slug: "receptionist",
     displayName: "Receptionist",

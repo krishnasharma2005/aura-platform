@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, ListChecks } from "lucide-react";
+import { ArrowUpRight, BookOpen, ListChecks, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { AGENTS } from "@/lib/agents";
 import { api } from "@/lib/api-client";
@@ -100,6 +100,36 @@ export default function DashboardHomePage() {
         </CardShell>
       </Reveal>
 
+      {/*
+        Not a seventh card in the grid below — the grid is deliberately "your
+        six agents." This is the other way in: one chat that figures out
+        which of them to consult, so a new owner never has to learn who
+        handles what.
+      */}
+      <Reveal delay={0.08}>
+        <Link
+          href="/chief-of-staff"
+          className="press group mt-6 flex items-center gap-4 rounded-lg border border-primary/25 bg-primary/[0.05] p-5 shadow-card hover:-translate-y-0.5 hover:shadow-lifted"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Users className="h-4.5 w-4.5" strokeWidth={1.75} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-display text-base font-semibold text-foreground">
+              Ask your Chief of Staff
+            </span>
+            <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+              Not sure which agent to ask? Talk to one place — it delegates to the right specialist
+              and brings back the answer.
+            </span>
+          </span>
+          <ArrowUpRight
+            className="h-4 w-4 shrink-0 text-subtle transition-transform duration-200 ease-physical group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+            strokeWidth={2}
+          />
+        </Link>
+      </Reveal>
+
       <div className="mt-10 mb-4 flex items-end justify-between gap-4">
         <h2 className="font-display text-xl font-semibold tracking-[-0.02em] text-foreground">
           Your agents
@@ -113,7 +143,7 @@ export default function DashboardHomePage() {
       </div>
 
       <RevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {AGENTS.map((agent) => {
+        {AGENTS.filter((agent) => agent.slug !== "chief-of-staff").map((agent) => {
           const Icon = agent.icon;
           const isActive = activeSlugs.includes(agent.slug);
           const isFocused = focusedSlug === agent.slug;

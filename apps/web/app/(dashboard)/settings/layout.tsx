@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 const TABS = [
   { href: "/settings", label: "General" },
+  { href: "/settings/business", label: "Business" },
+  { href: "/settings/packs", label: "Packs" },
   { href: "/settings/members", label: "Members" },
   { href: "/settings/integrations", label: "Integrations" },
   { href: "/settings/api-keys", label: "API keys" },

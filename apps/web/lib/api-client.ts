@@ -3,6 +3,8 @@ import type {
   AnalyticsSummary,
   AuditLogEntry,
   AuthResponse,
+  BusinessContext,
+  BusinessContextUpdateRequest,
   ChatOption,
   ChatRequest,
   ChatResponse,
@@ -17,6 +19,7 @@ import type {
   KnowledgeUploadResponse,
   LoginRequest,
   Approval,
+  Pack,
   PendingApproval,
   OrgRole,
   Organization,
@@ -350,6 +353,26 @@ export const api = {
       const backendProvider = provider === "google_calendar" || provider === "gmail" ? "google" : provider;
       return request<ConnectIntegrationResponse>(`/integrations/${backendProvider}/connect`, { method: "POST" });
     },
+  },
+  // The org's own business facts, grounding every agent's prompt. GET is
+  // open to any accepted member; PATCH/reset are owner/admin only on the
+  // backend (a 403 there is expected for a member and handled at the call
+  // site, same as integrations.connect).
+  businessContext: {
+    get: (orgId: string) => request<BusinessContext>(`/organizations/${orgId}/business-context`),
+    update: (orgId: string, data: BusinessContextUpdateRequest) =>
+      request<BusinessContext>(`/organizations/${orgId}/business-context`, { method: "PATCH", body: data }),
+    reset: (orgId: string) =>
+      request<BusinessContext>(`/organizations/${orgId}/business-context/reset`, { method: "POST" }),
+  },
+  // Vertical add-on packs. No billing yet — activate/deactivate are a free
+  // toggle today (see lib/api-types.ts's Pack docstring).
+  packs: {
+    list: (orgId: string) => request<Pack[]>(`/organizations/${orgId}/packs`),
+    activate: (orgId: string, packId: string) =>
+      request<Pack>(`/organizations/${orgId}/packs/${packId}/activate`, { method: "POST" }),
+    deactivate: (orgId: string, packId: string) =>
+      request<Pack>(`/organizations/${orgId}/packs/${packId}/deactivate`, { method: "POST" }),
   },
   // Human-approval gate. Consequential actions queue here instead of running,
   // and stay queued until the owner decides. Owner/admin only — a 403 from

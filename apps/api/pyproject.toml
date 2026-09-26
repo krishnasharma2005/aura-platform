@@ -17,6 +17,7 @@ dependencies = [
     "passlib[bcrypt]>=1.7,<2.0",
     "bcrypt<4.1",
     "openai>=1.55,<2.0",
+    "google-genai>=1.0,<3.0",
     "tenacity>=9.0,<10.0",
     "pypdf>=5.1,<6.0",
     "python-docx>=1.1,<2.0",
@@ -51,3 +52,14 @@ packages = ["src"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# core/db.py's `engine`/`async_session_factory` are process-wide singletons
+# created once at import time, not per-test. pytest-asyncio's default gives
+# every test its own event loop, which asyncpg's connection pool can't
+# tolerate (a pooled connection is bound to the loop it was opened on) —
+# invisible under sqlite+aiosqlite (which the suite runs on by default), but
+# it breaks the moment DATABASE_URL points at real Postgres, e.g. CI's
+# postgres service or a manual local run against it: every test after the
+# first errors with "Event loop is closed". One shared session-scoped loop
+# matches how the engine itself is actually used.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"

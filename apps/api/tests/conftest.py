@@ -31,6 +31,15 @@ os.environ.setdefault("ENV", "test")
 # a background loop doesn't race the schema being dropped between tests.
 os.environ.setdefault("WORKFLOWS_RUNNER_ENABLED", "false")
 os.environ.setdefault("WORKFLOW_RETRY_BACKOFF_SECONDS", "0")
+# Blank these out as real *environment variables* (not just unset) so they
+# take precedence over whatever a developer's local .env has configured for
+# manual testing (see AI_PROVIDER in core/config.py) — pydantic-settings reads
+# the .env file directly, so without this a real API key in .env would make
+# the suite place real, rate-limited/paid calls instead of the mocked
+# FakeGateway path every test actually exercises.
+os.environ.setdefault("OPENAI_API_KEY", "")
+os.environ.setdefault("GEMINI_API_KEY", "")
+os.environ.setdefault("AI_PROVIDER", "openai")
 
 import fakeredis
 import pytest_asyncio

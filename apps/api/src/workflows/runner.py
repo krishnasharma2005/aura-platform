@@ -65,7 +65,7 @@ async def tick() -> dict[str, int]:
             finally:
                 await service.release_definition(db, definition)
 
-        gateway = AIGateway() if settings.OPENAI_API_KEY else None
+        gateway = AIGateway() if settings.ai_provider_configured else None
         for run in await service.claim_due_runs(db, WORKER_ID, lock_timeout):
             try:
                 definition = await service.get_definition(db, run.org_id, run.workflow_id)

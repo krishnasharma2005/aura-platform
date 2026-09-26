@@ -70,7 +70,7 @@ export const GRAPH_NODES: GraphNode[] = [
   { slug: "receptionist", label: "Receptionist", connections: ["Calendar", "Gmail", "WhatsApp"] },
   { slug: "sales", label: "Sales", connections: ["Gmail", "HubSpot", "Slack"] },
   { slug: "marketing", label: "Marketing", connections: ["HubSpot", "Shopify", "Slack"] },
-  { slug: "executive-assistant", label: "Assistant", connections: ["Calendar", "Gmail", "Slack"] },
+  { slug: "executive_assistant", label: "Assistant", connections: ["Calendar", "Gmail", "Slack"] },
   { slug: "support", label: "Support", connections: ["Gmail", "WhatsApp", "Slack"] },
   { slug: "ecommerce", label: "Store", connections: ["Shopify", "Slack"] },
 ];

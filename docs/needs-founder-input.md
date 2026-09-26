@@ -15,17 +15,31 @@ aren't set up yet" message.
 **Where it goes:** `OPENAI_API_KEY` in `.env`.
 
 ## 2. Google Cloud OAuth app (Calendar + Gmail)
+**RESOLVED 2026-09-26 — consent flow built, one credential still missing.**
 **What:** a Google Cloud project with the Calendar and Gmail APIs enabled, an
 OAuth 2.0 client (client ID + secret), and a configured consent screen +
 redirect URI.
 **Why:** the Receptionist and Executive Assistant agents' calendar/email
 tools (`src/tools/calendar.py`, `src/tools/gmail.py`) need a real Google OAuth
 token per customer organization to book appointments or send/read email.
-**What's already built:** the token storage model (`integrations` table) and
-the tool code that uses a stored token. **What's missing:** the actual OAuth
-consent redirect flow — right now an org owner would have to paste a token
-manually via `POST /api/v1/integrations`, which only works for testing.
-**Where it goes:** `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`.
+**What's already built:** the full consent redirect flow
+(`src/tools/google_oauth.py`, wired into `src/api/v1/integrations.py`) —
+clicking "Connect" in the dashboard now sends the owner to Google's real
+consent screen (`access_type=offline`, `prompt=consent` so a refresh token
+always comes back) requesting Calendar read/write, Gmail read + send, and the
+account email (to label the connection). The callback verifies a signed,
+single-use state token (bound to the org, checked against a Redis nonce so a
+replayed callback URL can't reconnect a different org), exchanges the code for
+tokens, and stores them through the same encrypted `integrations` table every
+other provider uses. Covered by `tests/test_google_oauth.py`.
+**What's missing:** real credentials — the code path is inert (falls back to
+the existing "coming soon" response) until `GOOGLE_OAUTH_CLIENT_ID` and
+`GOOGLE_OAUTH_CLIENT_SECRET` are set. `GOOGLE_OAUTH_REDIRECT_URI` also needs
+to be registered as an exact-match redirect URI on the OAuth client in Google
+Cloud Console (defaults to `http://localhost:8000/api/v1/integrations/google/callback`
+for local dev — a deployed API needs its own real URL registered).
+**Where it goes:** `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` /
+`GOOGLE_OAUTH_REDIRECT_URI` in `.env`.
 
 ## 3. WhatsApp Business Cloud API
 **What:** a Meta developer app with WhatsApp Business Cloud API access, a
@@ -64,10 +78,11 @@ customer org).
 `src/tools/oauth_common.py` for reading/writing per-org tokens from the
 `integrations` table, and raises a clean, plain-language error (never a stack
 trace or "OAuth"/"token" jargon shown to the customer) when a tool is called
-before its integration is connected. The only remaining work once real
-provider credentials exist is building the actual OAuth consent redirect for
-Google (WhatsApp/Slack/HubSpot/Shopify use pasted tokens by design at this
-scale, matching how most SMB tools connect these).
+before its integration is connected. Google's OAuth consent redirect is now
+built (see #2) — the only remaining work for #3–6 once real provider
+credentials exist is pasting the token in; WhatsApp/Slack/HubSpot/Shopify use
+pasted tokens by design at this scale, matching how most SMB tools connect
+these.
 
 ## 7. Application encryption key (`ENCRYPTION_KEY`)
 **What:** a Fernet key, generated once with

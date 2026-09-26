@@ -345,6 +345,7 @@ export const api = {
             display_name: provider,
             status: r.connected ? "connected" : "not_connected",
             connected_at: typeof r.metadata?.connected_at === "string" ? r.metadata.connected_at : undefined,
+            account_label: typeof r.metadata?.account_label === "string" ? r.metadata.account_label : undefined,
           })
         )
       );

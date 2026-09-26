@@ -81,6 +81,19 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list[str] = Field(default=["http://localhost:3000"])
 
+    # --- Google OAuth (Calendar + Gmail, src/tools/google_oauth.py) ---
+    # See docs/needs-founder-input.md #2. Unset means the "Connect Google"
+    # button honestly reports "coming soon" instead of pretending to work.
+    GOOGLE_OAUTH_CLIENT_ID: str | None = Field(default=None, description="OAuth 2.0 client ID from Google Cloud.")
+    GOOGLE_OAUTH_CLIENT_SECRET: str | None = Field(default=None, description="OAuth 2.0 client secret.")
+    GOOGLE_OAUTH_REDIRECT_URI: str = Field(
+        default="http://localhost:8000/api/v1/integrations/google/callback",
+        description=(
+            "Must exactly match a redirect URI registered on the OAuth client in Google Cloud Console. "
+            "Points at this API's own callback route, not the frontend."
+        ),
+    )
+
     # --- Workflow engine (src/workflows/) ---
     WORKFLOWS_RUNNER_ENABLED: bool = Field(
         default=True,

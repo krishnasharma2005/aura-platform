@@ -39,9 +39,14 @@ export function IntegrationCard({
             <div>
               <CardTitle className="text-base">{definition.displayName}</CardTitle>
               {isConnected ? (
-                <Badge variant="success" className="mt-1">
-                  <Check className="h-3 w-3" /> Connected
-                </Badge>
+                <div className="mt-1 flex flex-col gap-0.5">
+                  <Badge variant="success">
+                    <Check className="h-3 w-3" /> Connected
+                  </Badge>
+                  {integration?.account_label && (
+                    <span className="text-xs text-muted-foreground">{integration.account_label}</span>
+                  )}
+                </div>
               ) : definition.availableNow ? (
                 <Badge variant="secondary" className="mt-1">Not connected</Badge>
               ) : (

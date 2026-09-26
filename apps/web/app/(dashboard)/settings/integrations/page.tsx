@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { errorMessage } from "@/lib/utils";
 import type { Integration } from "@/lib/api-types";
@@ -8,6 +9,26 @@ import { INTEGRATIONS } from "@/lib/integrations";
 import { IntegrationCard } from "@/components/integrations/integration-card";
 import { WebsiteChatPanel } from "@/components/integrations/website-chat-panel";
 import { useToast } from "@/components/ui/use-toast";
+
+// After the Google OAuth consent screen, Google redirects the browser back to
+// the API, which redirects here with ?google_connect=success|denied|error.
+// useSearchParams needs a Suspense boundary in the app router, so this reads
+// the query and reports back via a callback rather than living inline in the
+// page (which would force the whole page under Suspense for one query param).
+function GoogleConnectResultListener({ onResult }: { onResult: (result: string) => void }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    const result = searchParams.get("google_connect");
+    if (!result) return;
+    onResult(result);
+    router.replace("/settings/integrations");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  return null;
+}
 
 export default function IntegrationsSettingsPage() {
   const { toast } = useToast();
@@ -35,10 +56,29 @@ export default function IntegrationsSettingsPage() {
     load();
   }, [load]);
 
+  function handleGoogleConnectResult(result: string) {
+    if (result === "success") {
+      toast({ title: "Connected", description: "Google Calendar and Gmail are ready for your agents to use." });
+      load();
+    } else if (result === "denied") {
+      toast({ title: "Not connected", description: "The Google connection was cancelled." });
+    } else {
+      toast({
+        title: "Couldn't connect",
+        description: "Something went wrong connecting Google. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }
+
   async function handleConnect(provider: string) {
     setConnectingProvider(provider);
     try {
       const result = await api.integrations.connect(provider);
+      if (result.status === "redirect" && result.redirect_url) {
+        window.location.href = result.redirect_url;
+        return;
+      }
       if (result.status === "connected") {
         toast({ title: "Connected", description: "You're all set — your agents can now use this." });
       } else if (result.status === "coming_soon") {
@@ -68,6 +108,10 @@ export default function IntegrationsSettingsPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      <React.Suspense fallback={null}>
+        <GoogleConnectResultListener onResult={handleGoogleConnectResult} />
+      </React.Suspense>
+
       <p className="text-sm text-muted-foreground">
         Every connection below shows exactly what it lets your agents see and do before you turn it on. You
         can disconnect anything at any time.

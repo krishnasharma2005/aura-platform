@@ -33,9 +33,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AURA — Your business, always on",
+  title: "Mesnium — Your business, always on",
   description:
-    "AURA runs the front desk, sales follow-up, marketing, admin, support, and store insights for your business — so nothing falls through the cracks.",
+    "Mesnium runs the front desk, sales follow-up, marketing, admin, support, and store insights for your business — so nothing falls through the cracks.",
 };
 
 export const viewport: Viewport = {

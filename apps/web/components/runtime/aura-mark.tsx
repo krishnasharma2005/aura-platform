@@ -78,7 +78,7 @@ export function AuraLogo({
           tone === "onDark" ? "text-sidebar-foreground" : "text-foreground"
         )}
       >
-        AURA
+        MESNIUM
       </span>
     </span>
   );

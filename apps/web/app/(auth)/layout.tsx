@@ -67,7 +67,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <p className="relative z-10 mt-6 hidden items-start gap-2 text-xs leading-relaxed text-sidebar-muted lg:flex">
           <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.75} />
-          Your data stays with your business. We always show you exactly what AURA can see before
+          Your data stays with your business. We always show you exactly what Mesnium can see before
           you connect anything.
         </p>
       </aside>
@@ -77,7 +77,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="w-full max-w-md">{children}</div>
         <p className="mt-8 flex max-w-md items-start gap-2 text-xs leading-relaxed text-muted-foreground lg:hidden">
           <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.75} />
-          Your data stays with your business. We always show you exactly what AURA can see before
+          Your data stays with your business. We always show you exactly what Mesnium can see before
           you connect anything.
         </p>
       </main>

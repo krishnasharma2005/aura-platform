@@ -109,7 +109,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     });
   } catch {
     throw new ApiClientError(
-      "Couldn't reach the AURA server. Check your connection and try again."
+      "Couldn't reach the Mesnium server. Check your connection and try again."
     );
   }
 

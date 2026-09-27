@@ -8,7 +8,7 @@ export default function ApiKeysSettingsPage() {
       <CardHeader>
         <CardTitle className="text-base">API keys</CardTitle>
         <CardDescription>
-          For connecting AURA to your own tools directly. Most businesses won&apos;t need this — the
+          For connecting Mesnium to your own tools directly. Most businesses won&apos;t need this — the
           Integrations tab covers the common connections.
         </CardDescription>
       </CardHeader>
@@ -20,7 +20,7 @@ export default function ApiKeysSettingsPage() {
           <div>
             <p className="text-sm font-medium text-foreground">No API keys yet</p>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              Generate a key if you&apos;re building a custom integration with AURA. Reach out to support if
+              Generate a key if you&apos;re building a custom integration with Mesnium. Reach out to support if
               you&apos;re not sure whether you need one.
             </p>
           </div>

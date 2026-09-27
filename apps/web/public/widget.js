@@ -1,10 +1,10 @@
 /*!
- * AURA "Add chat to your website" widget.
+ * Mesnium "Add chat to your website" widget.
  *
  * Paste this on any page:
- *   <script src="https://<your-aura-web-host>/widget.js"
+ *   <script src="https://<your-mesnium-web-host>/widget.js"
  *           data-org="<public_id>"
- *           data-api="https://<your-aura-api-host>"
+ *           data-api="https://<your-mesnium-api-host>"
  *           defer></script>
  *
  * Design constraints, on purpose:
@@ -129,7 +129,7 @@
       messagesEl,
       optionsEl,
       el("div", { class: "composer" }, [textarea, sendBtn]),
-      el("div", { class: "footer" }, ["Powered by AURA"]),
+      el("div", { class: "footer" }, ["Powered by Mesnium"]),
     ]);
 
     var bubble = el("button", { class: "bubble", type: "button", "aria-label": "Open chat", onClick: togglePanel }, [

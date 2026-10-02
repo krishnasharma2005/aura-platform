@@ -104,7 +104,7 @@ export interface Approval extends PendingApproval {
   agent_slug: string;
   agent_display_name: string;
   /** Optional extra context: who, when, which record. */
-  details?: string | null;
+  details?: string | Record<string, unknown> | null;
   conversation_id?: string | null;
   status: ApprovalStatus;
   /** What happened after a decision, in plain language. */

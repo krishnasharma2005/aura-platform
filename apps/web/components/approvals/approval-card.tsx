@@ -19,6 +19,22 @@ function toolLabel(tool: string): string {
 }
 
 /**
+ * The backend sends the action's arguments (to, subject, body, start_time…) as
+ * an object. Show them as labelled lines; the machine-name `action` field is
+ * already covered by the summary, so it's left out.
+ */
+function detailLines(details: string | Record<string, unknown> | null | undefined): [string, string][] {
+  if (!details) return [];
+  if (typeof details === "string") return [["", details]];
+  return Object.entries(details)
+    .filter(([key, value]) => key !== "action" && value !== null && value !== undefined && value !== "")
+    .map(([key, value]) => [
+      key.replace(/[_-]/g, " ").replace(/^\w/, (c) => c.toUpperCase()),
+      typeof value === "string" ? value : JSON.stringify(value),
+    ]);
+}
+
+/**
  * An action waiting on the owner.
  *
  * This is the most trust-critical surface in the product, so it is also the
@@ -47,7 +63,7 @@ export function ApprovalCard({
   const decided = decisions[approval.id];
   const displayAgent =
     "agent_display_name" in approval ? approval.agent_display_name : agentName ?? "Your agent";
-  const details = "details" in approval ? approval.details : undefined;
+  const lines = detailLines("details" in approval ? approval.details : undefined);
 
   async function handle(decision: "approve" | "reject") {
     setBusy(decision);
@@ -97,8 +113,15 @@ export function ApprovalCard({
 
       <div className={cn("px-3.5", compact ? "py-3" : "py-3.5")}>
         <p className="text-sm leading-relaxed text-foreground">{approval.summary}</p>
-        {details && (
-          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{details}</p>
+        {lines.length > 0 && (
+          <dl className="mt-2 flex flex-col gap-1 rounded-md bg-secondary/50 px-2.5 py-2 text-xs leading-relaxed text-muted-foreground">
+            {lines.map(([label, value]) => (
+              <div key={label || value} className="flex gap-2">
+                {label && <dt className="shrink-0 font-medium text-foreground">{label}:</dt>}
+                <dd className="min-w-0 whitespace-pre-wrap break-words">{value}</dd>
+              </div>
+            ))}
+          </dl>
         )}
 
         <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">

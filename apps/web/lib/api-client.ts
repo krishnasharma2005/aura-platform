@@ -223,6 +223,17 @@ export const api = {
       setOrgId(org.id);
       return { id: org.id, name: org.name, business_type: org.business_type ?? "", created_at: org.created_at };
     },
+    // Every organization the signed-in user belongs to. This is how a returning
+    // user's browser finds its tenant — only onboarding ever creates one locally.
+    list: async (): Promise<Organization[]> => {
+      const rows = await request<BackendOrganization[]>("/organizations");
+      return rows.map((org) => ({
+        id: org.id,
+        name: org.name,
+        business_type: org.business_type ?? "",
+        created_at: org.created_at,
+      }));
+    },
     // The org's own record, including the public web-chat id the "Add chat to
     // your website" panel needs. `organizations.list()` mints one org's worth
     // of public_id lazily too, but the embed panel wants the freshest value

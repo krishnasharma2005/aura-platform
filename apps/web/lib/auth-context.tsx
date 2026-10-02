@@ -6,6 +6,7 @@ import {
   api,
   clearOrgId,
   clearToken,
+  getOrgId,
   getToken,
   setOrgId,
   setToken as persistToken,
@@ -46,9 +47,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Restore the active tenant for the API client too — every org-scoped
         // request needs it in a header, not just in React state.
         if (org?.id) setOrgId(org.id);
+      } else if (rawUser) {
+        // Signed in but no organization saved in this browser (a login on a
+        // fresh browser, or a session from before this was fetched at login).
+        // Without it every page that waits on the organization hangs.
+        void loadOrganization();
       }
     }
     setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const persistUser = (u: User) => {
@@ -62,10 +69,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (org?.id) setOrgId(org.id);
   };
 
+  /**
+   * Finds the user's organization and makes it the active tenant. Prefers the
+   * one already chosen for the API client, otherwise the first (oldest).
+   * Returns false for a user who has none yet — they still need onboarding.
+   */
+  const loadOrganization = async (): Promise<boolean> => {
+    try {
+      const orgs = await api.organizations.list();
+      if (orgs.length === 0) return false;
+      const remembered = getOrgId();
+      setOrganization(orgs.find((o) => o.id === remembered) ?? orgs[0]);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const login = async (email: string, password: string) => {
     const res = await api.auth.login({ email, password });
     persistToken(res.token);
     persistUser(res.user);
+    await loadOrganization();
   };
 
   const signup = async (email: string, password: string, fullName: string) => {

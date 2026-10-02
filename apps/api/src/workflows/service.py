@@ -33,52 +33,102 @@ def _now() -> datetime:
 # --------------------------------------------------------------------------
 
 
+async def _upsert_definition(
+    db: AsyncSession, org_id: uuid.UUID, template: dict[str, Any], enable: bool
+) -> WorkflowDefinition:
+    """Creates or refreshes one definition from a template dict. An existing
+    row keeps its `enabled` flag and counters but has its name/description/steps
+    refreshed, so a template improvement reaches every customer without a data
+    migration."""
+    existing = (
+        await db.execute(
+            select(WorkflowDefinition).where(
+                WorkflowDefinition.org_id == org_id,
+                WorkflowDefinition.slug == template["slug"],
+            )
+        )
+    ).scalar_one_or_none()
+
+    definition = existing or WorkflowDefinition(org_id=org_id, slug=template["slug"])
+    definition.name = template["name"]
+    definition.description = template["description"]
+    definition.trigger_type = TriggerType(template["trigger_type"])
+    definition.trigger_config = template["trigger_config"]
+    definition.steps = template["steps"]
+    definition.updated_at = _now()
+    if existing is None:
+        definition.enabled = enable
+        db.add(definition)
+    elif enable:
+        definition.enabled = True
+
+    if definition.enabled and definition.trigger_type is TriggerType.schedule:
+        definition.next_run_at = definition.next_run_at or _next_run_from(definition, _now())
+    return definition
+
+
 async def seed_templates(
     db: AsyncSession, org_id: uuid.UUID, enable: list[str] | None = None
 ) -> list[WorkflowDefinition]:
-    """Installs the pre-built templates for an organization. Idempotent: an
-    existing row keeps its `enabled` flag and its counters, but has its
-    name/description/steps refreshed so a template improvement reaches every
-    customer without a data migration.
+    """Installs the pre-built templates for an organization. Idempotent.
 
     `enable` names the slugs that should be switched on (defaults to none —
     an automation that starts messaging customers the moment an org is created
     is not a decision we get to make for them).
     """
     enable = enable or []
-    definitions: list[WorkflowDefinition] = []
-
-    for template in TEMPLATES:
-        existing = (
-            await db.execute(
-                select(WorkflowDefinition).where(
-                    WorkflowDefinition.org_id == org_id,
-                    WorkflowDefinition.slug == template["slug"],
-                )
-            )
-        ).scalar_one_or_none()
-
-        definition = existing or WorkflowDefinition(org_id=org_id, slug=template["slug"])
-        definition.name = template["name"]
-        definition.description = template["description"]
-        definition.trigger_type = template["trigger_type"]
-        definition.trigger_config = template["trigger_config"]
-        definition.steps = template["steps"]
-        definition.updated_at = _now()
-        if existing is None:
-            definition.enabled = template["slug"] in enable
-            db.add(definition)
-        elif template["slug"] in enable:
-            definition.enabled = True
-
-        if definition.enabled and definition.trigger_type is TriggerType.schedule:
-            definition.next_run_at = definition.next_run_at or _next_run_from(definition, _now())
-        definitions.append(definition)
-
+    definitions = [
+        await _upsert_definition(db, org_id, template, template["slug"] in enable)
+        for template in TEMPLATES
+    ]
     await db.commit()
     for definition in definitions:
         await db.refresh(definition)
     return definitions
+
+
+async def seed_pack_workflows(
+    db: AsyncSession, org_id: uuid.UUID, pack_id: str, templates: list[dict[str, Any]]
+) -> list[WorkflowDefinition]:
+    """Installs a Business Pack's workflows for an organization when the pack is
+    activated. Always switched **off** — activating a pack changes how agents
+    talk, it must not also start messaging patients. The owner turns each
+    automation on from the Workflows page.
+
+    Each definition is stamped with `pack_id` inside `trigger_config` (a JSON
+    column, so no migration) which is how deactivation finds them again.
+    Idempotent: re-activating refreshes the steps and keeps the owner's
+    on/off choice and run history.
+    """
+    definitions = []
+    for template in templates:
+        stamped = {**template, "trigger_config": {**(template.get("trigger_config") or {}), "pack_id": pack_id}}
+        definitions.append(await _upsert_definition(db, org_id, stamped, enable=False))
+    await db.commit()
+    for definition in definitions:
+        await db.refresh(definition)
+    return definitions
+
+
+async def disable_pack_workflows(db: AsyncSession, org_id: uuid.UUID, pack_id: str) -> int:
+    """Switches off every workflow a pack installed. They are kept (with their
+    history) rather than deleted, so re-activating the pack finds them as they
+    were. Returns how many were switched off."""
+    rows = list(
+        (await db.execute(select(WorkflowDefinition).where(WorkflowDefinition.org_id == org_id)))
+        .scalars()
+        .all()
+    )
+    switched_off = 0
+    for definition in rows:
+        if (definition.trigger_config or {}).get("pack_id") != pack_id or not definition.enabled:
+            continue
+        definition.enabled = False
+        definition.next_run_at = None
+        definition.updated_at = _now()
+        switched_off += 1
+    await db.commit()
+    return switched_off
 
 
 def _interval_minutes(definition: WorkflowDefinition) -> int:

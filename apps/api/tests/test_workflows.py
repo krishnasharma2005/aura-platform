@@ -658,7 +658,8 @@ async def test_listing_workflows_installs_the_three_templates_switched_off(
     assert {item["trigger"] for item in body} == {"Every day", "Every week", "When a new enquiry comes in"}
     # Plain language throughout — no cron strings, no step JSON leaked.
     assert all(set(item) == {
-        "id", "name", "description", "trigger", "enabled", "last_run_at", "run_count", "success_count"
+        "id", "name", "description", "trigger", "trigger_type", "pack_id", "enabled",
+        "last_run_at", "run_count", "success_count",
     } for item in body)
 
 

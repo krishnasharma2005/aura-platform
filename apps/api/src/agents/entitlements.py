@@ -8,16 +8,17 @@ a proper org-scoped table, consistent with how every other piece of tenant
 state in this codebase works (see agents/approvals.py for the same pattern:
 model + service functions colocated in one module).
 
+Activating a pack also installs its workflow templates for the org (switched
+off — see workflows/service.py::seed_pack_workflows), and deactivating switches
+them off again. Merging a pack's agent_overrides onto the base agent config at
+runtime lives in agents/runtime/effective_config.py, which reads
+list_active_pack_ids() from here.
+
 What this module deliberately does NOT do yet:
   - Enforce billing. Activating a pack here does not charge anyone and
     deactivating it does not refund anyone — this is entitlement bookkeeping
     only. The checkout flow that calls activate_pack() is a separate,
     not-yet-built piece.
-  - Apply a pack's agent_overrides to anything. See
-    agents/runtime/pack_loader.py for the pack schema and its own scope note
-    — merging an active pack's overrides onto the base AgentConfig at
-    runtime ("the context merge engine") is a separate, larger piece of work
-    that reads list_active_pack_ids() from here as an input.
 
 Absence of a row for (org_id, pack_id) means "never activated" — there is no
 default-on pack; every organization starts with only the six base agents.
@@ -86,7 +87,7 @@ async def activate_pack(db: AsyncSession, org_id: uuid.UUID, pack_id: str) -> Or
     -active pack just re-enables it (and clears deactivated_at) instead of
     erroring or creating a duplicate row, since a checkout webhook calling
     this may retry."""
-    get_pack(pack_id)  # raises PackNotFoundError for an unknown pack_id —
+    pack = get_pack(pack_id)  # raises PackNotFoundError for an unknown pack_id —
     # never let a typo silently create an entitlement to nothing.
 
     existing = await db.execute(
@@ -103,6 +104,12 @@ async def activate_pack(db: AsyncSession, org_id: uuid.UUID, pack_id: str) -> Or
         db.add(row)
     await db.commit()
     await db.refresh(row)
+
+    # Lazy import: the workflow engine imports the agent runtime, which imports
+    # this module.
+    from src.workflows import service as workflow_service
+
+    await workflow_service.seed_pack_workflows(db, org_id, pack_id, pack.workflow_templates)
     return row
 
 
@@ -119,4 +126,8 @@ async def deactivate_pack(db: AsyncSession, org_id: uuid.UUID, pack_id: str) -> 
     row.deactivated_at = _now()
     await db.commit()
     await db.refresh(row)
+
+    from src.workflows import service as workflow_service
+
+    await workflow_service.disable_pack_workflows(db, org_id, pack_id)
     return row

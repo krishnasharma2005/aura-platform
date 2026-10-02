@@ -22,6 +22,7 @@ from src.ai_gateway.providers.base import LLMProvider, LLMResponse
 from src.ai_gateway.providers.gemini_provider import GeminiProvider
 from src.ai_gateway.providers.openai_provider import OpenAIProvider
 from src.core.config import get_settings
+from src.core.exceptions import AIUnavailableError
 from src.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -47,6 +48,16 @@ def _is_retryable(exc: BaseException) -> bool:
     return False
 
 
+def _friendly(exc: Exception) -> Exception:
+    """A provider error that survived every retry (quota, overload, timeouts)
+    becomes a clean 503 the owner can read; anything else — including our own
+    AuraErrors like "provider not configured" — passes through unchanged."""
+    if _is_retryable(exc):
+        logger.warning("ai_gateway_unavailable", extra={"extra_fields": {"error": type(exc).__name__}})
+        return AIUnavailableError()
+    return exc
+
+
 class AIGateway:
     def __init__(self, provider_name: str | None = None) -> None:
         provider_name = provider_name or get_settings().AI_PROVIDER
@@ -54,13 +65,30 @@ class AIGateway:
             raise ValueError(f"Unknown AI provider: {provider_name}")
         self._provider: LLMProvider = _PROVIDERS[provider_name]()
 
+    async def complete(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> LLMResponse:
+        try:
+            return await self._complete_with_retries(messages, tools=tools, **kwargs)
+        except Exception as exc:
+            raise _friendly(exc) from exc
+
+    async def embed(self, texts: list[str]) -> list[list[float]]:
+        try:
+            return await self._embed_with_retries(texts)
+        except Exception as exc:
+            raise _friendly(exc) from exc
+
     @retry(
         retry=retry_if_exception(_is_retryable),
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=8),
         reraise=True,
     )
-    async def complete(
+    async def _complete_with_retries(
         self,
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]] | None = None,
@@ -86,7 +114,7 @@ class AIGateway:
         wait=wait_exponential(multiplier=1, min=1, max=8),
         reraise=True,
     )
-    async def embed(self, texts: list[str]) -> list[list[float]]:
+    async def _embed_with_retries(self, texts: list[str]) -> list[list[float]]:
         embeddings = await self._provider.embed(texts)
         logger.info("ai_gateway_embed", extra={"extra_fields": {"count": len(texts)}})
         return embeddings

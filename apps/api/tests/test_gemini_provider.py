@@ -181,3 +181,39 @@ class _Settings:
 
 def _settings(gemini_key="test-key", ai_provider="gemini"):
     return _Settings(gemini_key=gemini_key, ai_provider=ai_provider)
+
+
+async def test_an_exhausted_quota_reaches_the_caller_as_a_clean_503_not_a_raw_provider_error():
+    from src.ai_gateway.gateway import AIGateway
+    from src.core.exceptions import AIUnavailableError
+
+    class _OutOfQuota:
+        calls = 0
+
+        async def complete(self, messages, tools=None, **kwargs):
+            _OutOfQuota.calls += 1
+            raise genai_errors.ClientError(code=429, response_json={})
+
+    gateway = AIGateway("gemini")
+    gateway._provider = _OutOfQuota()
+
+    with pytest.raises(AIUnavailableError) as raised:
+        await gateway.complete([{"role": "user", "content": "hi"}])
+
+    assert _OutOfQuota.calls == 3  # retried, then gave up
+    assert raised.value.status_code == 503
+    assert "temporarily unavailable" in raised.value.message
+
+
+async def test_a_non_retryable_provider_error_is_not_disguised_as_an_outage():
+    from src.ai_gateway.gateway import AIGateway
+
+    class _BadRequest:
+        async def complete(self, messages, tools=None, **kwargs):
+            raise genai_errors.ClientError(code=400, response_json={})
+
+    gateway = AIGateway("gemini")
+    gateway._provider = _BadRequest()
+
+    with pytest.raises(genai_errors.ClientError):
+        await gateway.complete([{"role": "user", "content": "hi"}])

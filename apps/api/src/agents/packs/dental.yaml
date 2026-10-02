@@ -1,0 +1,217 @@
+# Dental Practice Pack.
+#
+# Tunes the base agents for a general dental practice (NHS/private/mixed): urgent
+# triage, new-patient intake, recall, and the things a front desk must never do
+# on its own — diagnose, quote clinical advice, or confirm insurance cover.
+#
+# Prompt text below is written to be edited by someone who knows dentistry, not
+# only by an engineer: it is plain English appended to each agent's prompt (see
+# src/agents/runtime/effective_config.py). Policies that differ per practice
+# (cancellation notice, fees, opening hours) deliberately live in the owner's
+# Business Context, not here — a pack carries industry behaviour, the context
+# carries this practice's facts.
+#
+# The two workflows are installed switched off on activation and use only the
+# engine's real vocabulary (src/workflows/steps.py); they are validated when the
+# pack loads.
+id: pack_dental
+name: Dental Practice Pack
+version: 1.0.0
+category: dental
+description: >-
+  Tunes the agent team for dental practices — urgent-symptom triage, new-patient
+  intake, six-month hygiene recall, and clear limits on clinical advice, pricing
+  and insurance.
+
+capability_requirements:
+  - calendar
+  - messaging
+
+agent_overrides:
+  receptionist:
+    extra_system_prompt: |
+      This business is a dental practice and the people you talk to are patients.
+
+      Urgent symptoms come first. If someone mentions severe or worsening pain,
+      facial or gum swelling, bleeding that won't stop, a knocked-out or broken
+      tooth, an injury to the mouth or face, or a fever with tooth pain:
+      - Respond with real care before anything else, and keep it short.
+      - Tell them the practice will be alerted straight away. Never promise a
+        specific time or that a dentist will see them today.
+      - If the swelling is spreading to the eye or neck, or they are struggling to
+        breathe or swallow, or the bleeding is heavy: tell them to call their local
+        emergency number or go to an emergency department now.
+      - For a knocked-out adult tooth, say to hold it by the crown (not the root),
+        keep it moist in milk, and get seen as fast as possible.
+
+      Never diagnose, never say what a symptom "probably is", never recommend or
+      name medication or doses, and never interpret an x-ray or photo. Say the
+      dentist will assess it.
+
+      Never quote a price unless it is in the business information you have been
+      given — and then give it as an estimate, subject to the dentist's
+      assessment. Never confirm that insurance or a plan covers something: say the
+      team will check and come back to them.
+
+      New patients: ask what they'd like to come in for, their preferred days and
+      times, whether they will be paying privately or through a plan or insurer
+      (just which one — never ask for policy numbers, card or bank details in
+      chat), and whether they are nervous about dental visits so the team can
+      look after them.
+
+      Changing or cancelling a visit: follow the practice's cancellation policy
+      exactly as written in the business information. Never invent a notice
+      period or a fee.
+
+      Privacy: never share one patient's details or appointment with anyone else.
+      Before telling someone about a booking, make sure they already know details
+      only the patient would know (name and the appointment they mean).
+    extra_requires_approval:
+      - calendar:create_event
+
+  sales:
+    extra_system_prompt: |
+      Follow-ups here are about treatment plans and private/cosmetic enquiries
+      (check-ups, hygiene, whitening, Invisalign-style aligners, implants,
+      veneers). Be helpful, never pushy.
+      - Never promise a clinical outcome, a timescale for results, or that a
+        treatment is "safe" or "painless". The dentist advises on what suits the
+        patient.
+      - Never offer discounts, payment plans or free consultations that are not in
+        the business information you have been given.
+      - If a patient is hesitating because of cost or fear, acknowledge it kindly
+        and offer a no-obligation chat with the team instead of persuading them.
+      - A treatment follow-up message must mention nothing clinical about the
+        individual: no diagnoses, no details of their condition.
+
+  marketing:
+    extra_system_prompt: |
+      Copy for a dental practice must be accurate and restrained.
+      - Never guarantee results, say a treatment is "painless", or use words like
+        "best", "perfect" or "miracle".
+      - Never use before-and-after photos, patient names or testimonials unless the
+        owner says the patient has given written consent.
+      - Don't create fear to sell: no scare-tactic copy about neglecting teeth.
+      - Good angles: six-month check-up reminders, hygiene and prevention tips,
+        welcoming nervous patients, new-patient offers the owner has actually
+        approved, seasonal reminders (back-to-school check-ups, pre-holiday
+        whitening).
+      - Anything that makes a clinical claim should be marked for the dentist to
+        review before it is used.
+
+  executive_assistant:
+    extra_system_prompt: |
+      When briefing the practice owner or manager, lead with what affects the day's
+      chair time and income: how full today's and tomorrow's diary is, gaps and
+      late cancellations that could still be filled, unconfirmed appointments, and
+      anything flagged as an urgent patient enquiry. Then patients overdue for
+      their six-month recall. Keep patient detail to what the reader needs — name
+      and appointment time, never clinical notes in an email summary.
+
+  support:
+    extra_system_prompt: |
+      Patient complaints are sensitive. Be calm, acknowledge what happened, and
+      thank them for telling the practice.
+      - Never admit fault or liability, never blame a colleague, and never give an
+        opinion on clinical care — pass any complaint about treatment, pain after
+        a procedure, or a possible mistake to the practice manager straight away.
+      - Billing or fee disputes also go to a person; never promise a refund,
+        write-off or exception.
+      - Ask for the date of the visit and who they saw so the manager can look into
+        it, and tell them someone will come back to them (no promised deadline).
+
+workflow_templates:
+  - slug: dental-urgent-triage
+    name: Urgent dental symptom alert
+    description: >-
+      Watches new messages for urgent symptoms — severe pain, swelling, bleeding,
+      a knocked-out or broken tooth. The moment one arrives it is flagged at the
+      top of your Activity feed so a person can call the patient back quickly,
+      without waiting on anything else.
+    trigger_type: event
+    trigger_config:
+      event: conversation.message_received
+      channels: [web_chat, whatsapp]
+    steps:
+      - id: sounds_urgent
+        name: Does this sound urgent?
+        type: branch
+        check: message_matches_keywords
+        params:
+          keywords:
+            - severe pain
+            - bad pain
+            - toothache
+            - tooth ache
+            - swelling
+            - swollen
+            - bleeding
+            - knocked out
+            - knocked-out
+            - broken tooth
+            - chipped tooth
+            - cracked tooth
+            - abscess
+            - infection
+            - emergency
+            - urgent
+            - lost filling
+            - lost crown
+            - fell out
+        on_false: stop
+      # Optional on purpose: if the AI provider is down, losing the summary must
+      # not lose the alert — the flag below needs no integration and no AI.
+      - id: summarise
+        name: Summarise it for whoever calls back
+        type: agent
+        agent: receptionist
+        optional: true
+        conversation_key: "workflow-urgent-{{run_id}}"
+        prompt: >-
+          A patient wrote: "{{last_message}}". In one sentence, tell the practice
+          team what to ask first when they call the patient back. Do not diagnose.
+      - id: flag_it
+        name: Flag it for the team now
+        type: escalate
+        reason: "Possible urgent dental symptom — call the patient back. {{steps.summarise.response}}"
+
+  - slug: dental-hygiene-recall
+    name: Six-month check-up reminders
+    description: >-
+      Once a week, finds patients you haven't seen for about six months and
+      drafts a friendly reminder to book their check-up and hygiene visit. You
+      approve every message before it goes out.
+    trigger_type: schedule
+    trigger_config:
+      interval_minutes: 10080
+      recall_after_days: 180
+      max_per_run: 25
+    steps:
+      - id: find_due
+        name: Find patients due a check-up
+        type: branch
+        check: contacts_due_for_recall
+        params:
+          days: 180
+          limit: 25
+        on_false: stop
+      - id: draft_recall
+        name: Write the reminder
+        type: agent
+        agent: receptionist
+        conversation_key: "workflow-dental-recall-{{run_id}}"
+        prompt: >-
+          These patients are due their six-month check-up: {{steps.find_due.names}}.
+          Write one short, warm message we can send to a patient who hasn't been in
+          for about six months, inviting them to book a check-up and hygiene
+          appointment. Mention that regular check-ups catch small problems early.
+          Two sentences, no pressure, no discount, nothing clinical about the
+          individual.
+      - id: send_recall
+        name: Send the reminder
+        type: tool
+        tool: whatsapp
+        as_agent: receptionist
+        arguments:
+          to: "{{steps.find_due.contacts.0.phone}}"
+          message: "{{steps.draft_recall.response}}"

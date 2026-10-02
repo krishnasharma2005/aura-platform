@@ -406,6 +406,10 @@ export interface Workflow {
    * turns it into a sentence an owner can read.
    */
   trigger: string;
+  /** "event" workflows start from a customer message; "schedule" ones from the clock. */
+  trigger_type?: "event" | "schedule" | string;
+  /** The Business Pack that installed this workflow, e.g. "pack_dental". */
+  pack_id?: string | null;
   enabled: boolean;
   last_run_at?: string | null;
   run_count: number;

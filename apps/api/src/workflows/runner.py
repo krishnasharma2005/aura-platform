@@ -32,6 +32,7 @@ from src.core.db import async_session_factory
 from src.core.logging import get_logger
 from src.events.bus import event_bus
 from src.workflows import engine, service
+from src.workflows.steps import TRIGGERABLE_EVENTS
 
 logger = get_logger(__name__)
 
@@ -146,12 +147,6 @@ async def handle_event(event_name: str, payload: dict[str, Any]) -> None:
                 },
             )
 
-
-# Event names an event-triggered workflow may subscribe to. Kept as an
-# allowlist rather than "whatever string is in trigger_config" so a stored
-# definition cannot make the engine listen to something that was never meant
-# to be a trigger.
-TRIGGERABLE_EVENTS = ("conversation.message_received",)
 
 _triggers_registered = False
 

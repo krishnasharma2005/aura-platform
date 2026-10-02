@@ -32,6 +32,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents import approvals as approvals_service
+from src.agents.runtime.effective_config import get_effective_agent_config
 from src.agents.runtime.loader import AgentNotFoundError, load_agent_config
 from src.agents.runtime.pipeline import run_agent
 from src.ai_gateway.gateway import AIGateway
@@ -85,10 +86,15 @@ async def start_run(
     definition: WorkflowDefinition,
     trigger_source: str,
     context: dict[str, Any] | None = None,
+    claim_for: str | None = None,
 ) -> WorkflowRun:
     """Creates the run row. Deliberately does *not* execute it: an event
     handler firing on the request path should never make a customer wait for a
-    workflow. The runner picks it up on the next tick."""
+    workflow. The runner picks it up on the next tick.
+
+    `claim_for` is for a caller that is about to execute the run itself (the
+    owner's "run a test" button): the run is created already locked, so the
+    background runner can't pick it up and execute it a second time."""
     run = WorkflowRun(
         org_id=definition.org_id,
         workflow_id=definition.id,
@@ -96,7 +102,9 @@ async def start_run(
         trigger_source=trigger_source,
         context={"run_id": str(uuid.uuid4()), "workflow": definition.slug, **(context or {})},
         next_step_index=0,
-        resume_at=_now(),
+        resume_at=None if claim_for else _now(),
+        locked_at=_now() if claim_for else None,
+        locked_by=claim_for,
         started_at=_now(),
     )
     db.add(run)
@@ -372,7 +380,11 @@ async def _execute_tool(
     agent_slug = str(step.get("as_agent") or "")
 
     try:
-        config = load_agent_config(agent_slug)
+        # The *effective* config, not the base one: an activated pack can add a
+        # tool to an agent and add approval rules, and a workflow step must obey
+        # exactly what a live chat with that agent would. Reading the base config
+        # here would let a workflow skip an approval a pack requires.
+        config, _provenance = await get_effective_agent_config(db, run.org_id, agent_slug)
     except AgentNotFoundError as exc:
         raise step_lib.WorkflowDefinitionError(
             "This workflow doesn't say which assistant is responsible for this action, "

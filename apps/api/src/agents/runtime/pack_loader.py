@@ -10,12 +10,13 @@ tool access, and approval requirements. It never introduces executable code —
 a pack is validated YAML, exactly like the base agent configs in
 agents/configs/, and is loaded the same way (see agents/runtime/loader.py).
 
-Scope of this module: parsing and exposing pack *definitions*. Two things are
-deliberately NOT done here yet, and shouldn't be assumed to work:
-  1. Merging a pack's agent_overrides onto the base AgentConfig at runtime
-     (the "context merge engine" — a separate, larger piece of work).
-  2. Seeding a pack's workflow_templates into workflow_definitions on
-     activation.
+Scope of this module: parsing and exposing pack *definitions*. How a pack takes
+effect lives elsewhere:
+  - agents/runtime/effective_config.py merges an active pack's agent_overrides
+    onto the base agent config on every turn (and in workflow tool steps).
+  - agents/entitlements.py records which packs an org has activated, and on
+    activation installs the pack's `workflow_templates` as (switched-off)
+    workflow definitions via workflows/service.py.
 Which packs an organization has actually purchased/activated lives in
 agents/entitlements.py (OrgPackEntitlement), not here — this module only
 answers "what packs exist and what do they declare", the same way
@@ -27,7 +28,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 PACKS_DIR = Path(__file__).resolve().parent.parent / "packs"
 
@@ -61,10 +62,23 @@ class Pack(BaseModel):
     capability_requirements: list[str] = []
     # Keyed by agent slug (must match an AgentConfig.slug in agents/configs/).
     agent_overrides: dict[str, PackAgentOverride] = {}
-    # Raw workflow-definition-shaped dicts (see workflows/models.py) this pack
-    # would seed on activation. Not yet wired to anything — seeding on
-    # activation is future work, tracked separately from this schema.
+    # Workflow definitions this pack installs (switched off) when an org
+    # activates it. Same shape as workflows/templates.py — steps use the
+    # engine's real vocabulary — and checked against the engine's own rules at
+    # load time, so a pack that couldn't run fails here, not in a customer's
+    # account.
     workflow_templates: list[dict] = []
+
+    @model_validator(mode="after")
+    def _workflow_templates_are_runnable(self) -> "Pack":
+        # Imported here: the workflow engine imports the agent runtime, which
+        # imports this module.
+        from src.workflows.steps import validate_definition
+
+        problems = [p for template in self.workflow_templates for p in validate_definition(template)]
+        if problems:
+            raise ValueError(f"Pack '{self.id}' has workflows that can't run: " + " ".join(problems))
+        return self
 
 
 class PackNotFoundError(Exception):

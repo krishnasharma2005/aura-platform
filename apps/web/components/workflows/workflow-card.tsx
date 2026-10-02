@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircle, Check, ChevronDown, Clock3, Loader2, X } from "lucide-react";
+import { AlertCircle, Check, ChevronDown, Clock3, Loader2, Play, X } from "lucide-react";
 import { api } from "@/lib/api-client";
 import type { Workflow, WorkflowRun, WorkflowStep } from "@/lib/api-types";
 import {
@@ -14,6 +14,8 @@ import {
 } from "@/lib/workflows";
 import { cn, errorMessage, formatRelativeTime } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
@@ -38,6 +40,19 @@ function StepIcon({ status }: { status: WorkflowStep["status"] }) {
     );
   }
   return <Check className="h-3 w-3 text-success" strokeWidth={2.5} aria-hidden="true" />;
+}
+
+/** "pack_dental" -> "Dental pack". */
+function packLabel(packId: string): string {
+  const name = packId.replace(/^pack_/, "").replace(/_/g, " ");
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)} pack`;
+}
+
+/** A believable message to try, so a test of a message-triggered workflow does something on the first click. */
+function sampleMessage(packId?: string | null): string {
+  if (packId === "pack_dental") return "My tooth is badly swollen and I'm in a lot of pain";
+  if (packId === "pack_real_estate") return "Hi, I'd like to arrange a viewing for a 3-bed house";
+  return "Hi, I'd like to make an enquiry";
 }
 
 function RunRow({ run }: { run: WorkflowRun }) {
@@ -133,6 +148,10 @@ export function WorkflowCard({
   const [runs, setRuns] = React.useState<WorkflowRun[] | null>(null);
   const [runsError, setRunsError] = React.useState<string | null>(null);
   const [isLoadingRuns, setIsLoadingRuns] = React.useState(false);
+  const [testOpen, setTestOpen] = React.useState(false);
+  const [testMessage, setTestMessage] = React.useState(() => sampleMessage(workflow.pack_id));
+  const [isTesting, setIsTesting] = React.useState(false);
+  const startsFromMessage = workflow.trigger_type === "event";
 
   const panelId = `workflow-runs-${workflow.id}`;
 
@@ -184,6 +203,38 @@ export function WorkflowCard({
     if (next && runs === null && !isLoadingRuns) loadRuns();
   };
 
+  const runTest = async () => {
+    if (isTesting) return;
+    setIsTesting(true);
+    try {
+      const run = await api.workflows.runTest(workflow.id, startsFromMessage ? testMessage : undefined);
+      onChange({
+        ...workflow,
+        run_count: (workflow.run_count ?? 0) + 1,
+        success_count: (workflow.success_count ?? 0) + (run.status === "success" ? 1 : 0),
+        last_run_at: run.started_at,
+      });
+      setIsOpen(true);
+      loadRuns();
+      toast({
+        variant: run.status === "failed" ? "destructive" : undefined,
+        title: run.status === "failed" ? "The test stopped early" : "Test finished",
+        description:
+          run.status === "failed"
+            ? "Open the history below to see which step stopped and why."
+            : "Open the history below to see what each step did. Nothing was sent without your approval.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Couldn't run the test",
+        description: errorMessage(err, "Something went wrong starting the test. Nothing was sent."),
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   const hasRun = (workflow.run_count ?? 0) > 0 || !!workflow.last_run_at;
 
   return (
@@ -199,6 +250,11 @@ export function WorkflowCard({
           <p className="mt-2.5 flex items-center gap-1.5 text-xs text-subtle">
             <Clock3 className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             {triggerSentence(workflow.trigger)}
+            {workflow.pack_id && (
+              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-semibold text-primary">
+                {packLabel(workflow.pack_id)}
+              </span>
+            )}
           </p>
         </div>
 
@@ -236,6 +292,16 @@ export function WorkflowCard({
           )}
         </p>
 
+        <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => setTestOpen((open) => !open)}
+          aria-expanded={testOpen}
+          className="tap-h press inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-primary hover:underline"
+        >
+          <Play className="h-3 w-3" strokeWidth={2.25} aria-hidden="true" />
+          Run a test
+        </button>
         {hasRun && (
           <button
             type="button"
@@ -252,7 +318,36 @@ export function WorkflowCard({
             />
           </button>
         )}
+        </div>
       </div>
+
+      {testOpen && (
+        <div className="border-t border-border bg-secondary/30 px-5 py-4">
+          {startsFromMessage && (
+            <div className="mb-3 flex flex-col gap-1.5">
+              <label htmlFor={`test-message-${workflow.id}`} className="text-xs font-semibold text-foreground">
+                Pretend a customer just sent this message
+              </label>
+              <Input
+                id={`test-message-${workflow.id}`}
+                value={testMessage}
+                onChange={(e) => setTestMessage(e.target.value)}
+                maxLength={1000}
+              />
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <Button size="sm" onClick={runTest} loading={isTesting} disabled={isTesting}>
+              <Play className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Run it now
+            </Button>
+            <p className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
+              This really runs it, whether or not it&rsquo;s switched on. Anything that would message a patient
+              still waits for your approval.
+            </p>
+          </div>
+        </div>
+      )}
 
       {isOpen && (
         <div id={panelId} className="border-t border-border bg-secondary/30 px-5 py-1">

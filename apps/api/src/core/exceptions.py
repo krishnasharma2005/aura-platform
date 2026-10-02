@@ -47,6 +47,18 @@ class ProviderNotConfiguredError(AuraError):
     default_message = "This feature isn't set up yet. Please connect it first."
 
 
+class AIUnavailableError(AuraError):
+    """The AI provider is rate-limited, over its quota, or down, and retrying
+    didn't help. Not a misconfiguration (that's ProviderNotConfiguredError) —
+    it's expected to clear up on its own."""
+
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_message = (
+        "Your assistant is temporarily unavailable — it has hit its usage limit or the AI service "
+        "is busy. Please try again in a little while."
+    )
+
+
 class AuthenticationError(AuraError):
     status_code = status.HTTP_401_UNAUTHORIZED
     default_message = "Please sign in again."

@@ -1,12 +1,10 @@
 # Reference Business Pack — the schema's first real example.
 # Ported from dist/mesnium-business/packs-registry.js (BUILTIN_REAL_ESTATE_PACK)
 # in the openclaw/claw fork, adapted to this codebase's six base agents and
-# its workflow_definitions shape (src/workflows/models.py).
+# its workflow engine (src/workflows/).
 #
-# Activating this pack does not (yet) do anything by itself — see the module
-# docstring in src/agents/runtime/pack_loader.py for what's wired and what
-# isn't. This file exists so the schema has a real, validated example beyond
-# an empty registry.
+# Activating this pack tunes the agents (see src/agents/runtime/effective_config.py)
+# and installs the workflow below, switched off, for the owner to enable.
 id: pack_real_estate
 name: Real Estate Business Pack
 version: 1.0.0
@@ -66,41 +64,51 @@ agent_overrides:
       volume, average days on market (DOM), active listing pipeline, and
       commission forecasting over generic inbox/calendar summaries.
 
-# Not yet seeded on activation (see pack_loader.py docstring) — shaped to
-# match workflows/models.py + workflows/templates.py so wiring it up later is
-# a seeding function, not a schema change.
+# Installed (switched off) on activation. Uses the engine's real step vocabulary
+# (src/workflows/steps.py); validated when the pack loads.
 workflow_templates:
-  - slug: real-estate-lead-followup
-    name: Real Estate Lead Follow-Up & Showing Coordination
+  - slug: real-estate-buyer-enquiry
+    name: Buyer enquiry follow-up
     description: >-
-      Receptionist captures buyer criteria, Sales prepares matching
-      properties and financing notes, then a showing is proposed through the
-      calendar tool (subject to the normal approval gate).
+      Watches new messages for property enquiries (buying, selling, viewings,
+      valuations). When one comes in, Sales pulls out what the person is looking
+      for and the enquiry is flagged in your Activity feed for an agent to pick up.
     trigger_type: event
     trigger_config:
-      event: lead.received
+      event: conversation.message_received
+      channels: [web_chat, whatsapp]
     steps:
-      - id: step_intake_qualify
-        name: Receptionist Intake & Qualification
+      - id: is_property_enquiry
+        name: Is this a property enquiry?
+        type: branch
+        check: message_matches_keywords
+        params:
+          keywords:
+            - buy
+            - buying
+            - sell
+            - selling
+            - viewing
+            - valuation
+            - mortgage
+            - listing
+            - property
+            - house
+            - flat
+            - apartment
+        on_false: stop
+      - id: summarise_lead
+        name: Pull out what they are looking for
         type: agent
-        agent_slug: receptionist
-        input:
-          task: >-
-            Extract prospective buyer criteria: budget range, desired
-            bedrooms/bathrooms, preferred neighborhoods, and target move-in
-            timeline.
-      - id: step_sales_prep
-        name: Sales Preparation
-        type: agent
-        agent_slug: sales
-        input:
-          task: >-
-            Compile matching property comps and draft a tailored viewing
-            itinerary and financing consultation notes.
-      - id: step_calendar_booking
-        name: Propose Private Property Tour
-        type: tool
-        tool: calendar
-        input:
-          action: create_event
-          title: Private Property Tour & Buyer Consultation
+        agent: sales
+        optional: true
+        conversation_key: "workflow-lead-{{run_id}}"
+        prompt: >-
+          A prospective buyer or seller wrote: "{{last_message}}". In two short
+          sentences, note what they want (buying or selling, area, budget,
+          timeline) and what is still missing. Do not invent anything they did
+          not say.
+      - id: flag_for_agent
+        name: Flag it for an agent
+        type: escalate
+        reason: "New property enquiry ready for an agent to follow up. {{steps.summarise_lead.response}}"

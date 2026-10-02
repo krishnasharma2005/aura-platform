@@ -216,11 +216,29 @@ async def check_contacts_due_for_recall(
     )
 
 
+async def check_message_matches_keywords(
+    db: AsyncSession, org_id: uuid.UUID, context: dict[str, Any], params: dict[str, Any]
+) -> CheckResult:
+    """True when the message that triggered this run mentions any of
+    `params["keywords"]` (whole words or phrases, case-insensitive).
+
+    This is how a vertical pack says "only act on messages like *this*" without
+    a model call — e.g. dental emergency triage fires on "swelling" or "knocked
+    out", and must keep working when the AI provider is down."""
+    text = str(context.get("last_message") or "").lower()
+    keywords = [str(k).strip().lower() for k in (params.get("keywords") or []) if str(k).strip()]
+    hits = [k for k in keywords if re.search(rf"\b{re.escape(k)}\b", text)]
+    if hits:
+        return CheckResult(True, f"The message mentions: {', '.join(hits[:3])}.", {"matched": hits})
+    return CheckResult(False, "Nothing in that message needs this.", {"matched": []})
+
+
 CHECKS = {
     "always": check_always,
     "context_not_empty": check_context_not_empty,
     "conversation_unanswered": check_conversation_unanswered,
     "contacts_due_for_recall": check_contacts_due_for_recall,
+    "message_matches_keywords": check_message_matches_keywords,
 }
 
 
@@ -231,3 +249,93 @@ async def run_check(
     if check is None:
         raise WorkflowDefinitionError(f"This workflow asks for a condition we don't recognise: '{name}'.")
     return await check(db, org_id, context, params)
+
+
+# --------------------------------------------------------------------------
+# Definition validation
+# --------------------------------------------------------------------------
+
+# Event names an event-triggered workflow may subscribe to. An allowlist, not
+# "whatever string is in trigger_config", so a stored definition cannot make the
+# engine listen to something that was never meant to be a trigger. Lives here
+# (not in runner.py) so pack definitions can be validated at load time without
+# importing the runner.
+TRIGGERABLE_EVENTS = ("conversation.message_received",)
+
+STEP_TYPES = ("tool", "agent", "wait", "branch", "escalate")
+
+
+def validate_definition(template: dict[str, Any]) -> list[str]:
+    """Problems with a workflow definition, as plain sentences; empty means it
+    is runnable. Used for the built-in templates and for every Business Pack's
+    `workflow_templates`, so a malformed pack fails when it is loaded instead of
+    on the first run in a customer's account."""
+    # Imported here: both pull in modules that import this one indirectly.
+    from src.agents.runtime.loader import AgentNotFoundError, load_agent_config
+    from src.tools.registry import get_tool
+    from src.workflows.models import TriggerType
+
+    problems: list[str] = []
+    slug = template.get("slug") or "(no slug)"
+
+    for key in ("slug", "name", "description"):
+        if not isinstance(template.get(key), str) or not template[key].strip():
+            problems.append(f"{slug}: '{key}' is required.")
+
+    trigger = template.get("trigger_type")
+    trigger_value = getattr(trigger, "value", trigger)
+    config = template.get("trigger_config") or {}
+    if trigger_value not in {t.value for t in TriggerType}:
+        problems.append(f"{slug}: trigger_type must be 'schedule' or 'event'.")
+    elif trigger_value == "event" and config.get("event") not in TRIGGERABLE_EVENTS:
+        problems.append(f"{slug}: no such event to start from: '{config.get('event')}'.")
+    elif trigger_value == "schedule":
+        interval = config.get("interval_minutes")
+        if not isinstance(interval, int) or interval < 1:
+            problems.append(f"{slug}: a schedule needs a positive interval_minutes.")
+
+    steps = template.get("steps")
+    if not isinstance(steps, list) or not steps:
+        problems.append(f"{slug}: needs at least one step.")
+        return problems
+
+    seen: set[str] = set()
+    for index, step in enumerate(steps):
+        if not isinstance(step, dict):
+            problems.append(f"{slug}: step {index + 1} isn't a set of named fields.")
+            continue
+        step_id = str(step.get("id") or "")
+        where = f"{slug} step '{step_id or index + 1}'"
+        if not step_id:
+            problems.append(f"{where}: needs an id.")
+        elif step_id in seen:
+            problems.append(f"{where}: id is used twice.")
+        seen.add(step_id)
+
+        step_type = step.get("type")
+        if step_type not in STEP_TYPES:
+            problems.append(f"{where}: unknown type '{step_type}'.")
+        elif step_type == "wait":
+            if not isinstance(step.get("minutes"), int) or step["minutes"] < 1:
+                problems.append(f"{where}: a wait needs a positive number of minutes.")
+        elif step_type == "branch":
+            if step.get("check") not in CHECKS:
+                problems.append(f"{where}: unknown condition '{step.get('check')}'.")
+        elif step_type == "escalate":
+            if not str(step.get("reason") or "").strip():
+                problems.append(f"{where}: an escalation needs a reason.")
+        elif step_type == "agent":
+            if not str(step.get("prompt") or "").strip():
+                problems.append(f"{where}: an agent step needs a prompt.")
+            try:
+                load_agent_config(str(step.get("agent") or ""))
+            except AgentNotFoundError:
+                problems.append(f"{where}: no such agent '{step.get('agent')}'.")
+        elif step_type == "tool":
+            if get_tool(str(step.get("tool") or "")) is None:
+                problems.append(f"{where}: no such tool '{step.get('tool')}'.")
+            try:
+                load_agent_config(str(step.get("as_agent") or ""))
+            except AgentNotFoundError:
+                problems.append(f"{where}: 'as_agent' must name a real agent.")
+    return problems

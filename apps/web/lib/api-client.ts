@@ -421,5 +421,9 @@ export const api = {
     enable: (id: string) => request<Workflow>(`/workflows/${id}/enable`, { method: "POST" }),
     disable: (id: string) => request<Workflow>(`/workflows/${id}/disable`, { method: "POST" }),
     runs: (id: string, limit = 20) => request<WorkflowRun[]>(`/workflows/${id}/runs?limit=${limit}`),
+    // Runs the workflow once, right now — works whether or not it's switched on.
+    // For message-triggered workflows, `message` is the customer message to pretend arrived.
+    runTest: (id: string, message?: string) =>
+      request<WorkflowRun>(`/workflows/${id}/run`, { method: "POST", body: { message: message ?? null } }),
   },
 };

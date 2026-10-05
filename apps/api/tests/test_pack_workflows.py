@@ -13,6 +13,8 @@ from src.workflows.templates import TEMPLATES
 
 DENTAL = "pack_dental"
 REAL_ESTATE = "pack_real_estate"
+SALON = "pack_salon"
+HOME_SERVICES = "pack_home_services"
 
 
 # ---------------------------------------------------------------- definitions
@@ -25,7 +27,7 @@ def test_every_builtin_template_is_runnable():
 
 def test_every_pack_workflow_is_runnable():
     packs = list_packs()
-    assert {pack.id for pack in packs} >= {DENTAL, REAL_ESTATE}
+    assert {pack.id for pack in packs} >= {DENTAL, REAL_ESTATE, SALON, HOME_SERVICES}
     for pack in packs:
         for template in pack.workflow_templates:
             assert validate_definition(template) == [], f"{pack.id}/{template['slug']}"
@@ -330,3 +332,135 @@ async def test_an_active_pack_extends_and_gates_a_workflow_tool_step(db_session,
     # book — so the step must queue for the owner instead of booking.
     assert steps[0].status is StepStatus.awaiting_approval
     assert "Nothing was sent until you say so" in steps[0].detail
+
+
+# ------------------------------------------------- salon and home services packs
+
+_AGENTS = {"receptionist", "sales", "marketing", "executive_assistant", "support"}
+
+
+def test_salon_and_home_services_packs_tune_the_agents_and_bring_two_workflows_each():
+    salon = get_pack(SALON)
+    assert set(salon.agent_overrides) == _AGENTS
+    assert {t["slug"] for t in salon.workflow_templates} == {"salon-reaction-alert", "salon-rebooking-nudge"}
+
+    home = get_pack(HOME_SERVICES)
+    assert set(home.agent_overrides) == _AGENTS
+    assert {t["slug"] for t in home.workflow_templates} == {
+        "home-services-emergency-alert",
+        "home-services-annual-service-reminder",
+    }
+
+
+def test_the_safety_rules_that_matter_are_in_the_prompts():
+    salon = get_pack(SALON).agent_overrides["receptionist"].extra_system_prompt.lower()
+    assert "patch test" in salon
+    assert "never promise a result" in salon
+
+    home = get_pack(HOME_SERVICES).agent_overrides["receptionist"].extra_system_prompt.lower()
+    assert "leave the property" in home  # gas
+    assert "never quote a firm price" in home
+    assert "never walk anyone through repairing gas" in home
+
+
+def test_a_pack_that_tunes_an_agent_which_does_not_exist_is_rejected():
+    from src.agents.runtime.pack_loader import Pack
+
+    with pytest.raises(ValueError) as error:
+        Pack.model_validate(
+            {
+                "id": "pack_typo",
+                "name": "Typo",
+                "version": "1",
+                "category": "x",
+                "description": "x",
+                "agent_overrides": {"executive-assistant": {"extra_system_prompt": "hello"}},
+            }
+        )
+    assert "executive-assistant" in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "pack_id, workflow_name, urgent_messages, ordinary_messages",
+    [
+        (
+            SALON,
+            "Reaction and burn alert",
+            [
+                "I think I'm having an allergic reaction to the hair dye",
+                "My scalp is burning and has blisters since yesterday's colour",
+            ],
+            [
+                "Hi, can I book a cut and blow dry for Saturday?",
+                "Do you do gel nails?",
+            ],
+        ),
+        (
+            HOME_SERVICES,
+            "Emergency call-out alert",
+            [
+                "I can smell gas in the kitchen",
+                "We've got a burst pipe and water is flooding the hallway",
+                "Sparks coming from the socket and a burning smell",
+            ],
+            [
+                "Hi, can I get a quote for fitting a new tap?",
+                "Do you cover the north side of town for gutter cleaning?",
+            ],
+        ),
+    ],
+)
+async def test_each_packs_alert_fires_on_real_emergencies_and_stays_quiet_otherwise(
+    client, user_and_org, pack_id, workflow_name, urgent_messages, ordinary_messages
+):
+    _, org, headers = user_and_org
+    activated = await client.post(f"/api/v1/organizations/{org.id}/packs/{pack_id}/activate", headers=headers)
+    assert activated.status_code == 200
+    workflow_id = await _workflow_id(client, headers, workflow_name)
+
+    for message in urgent_messages:
+        run = (
+            await client.post(f"/api/v1/workflows/{workflow_id}/run", json={"message": message}, headers=headers)
+        ).json()
+        steps = {step["name"]: step for step in run["steps"]}
+        assert run["status"] == "success", message
+        flagged = [s for name, s in steps.items() if name == "Flag it for the team now"]
+        assert flagged and flagged[0]["status"] == "success", message
+
+    for message in ordinary_messages:
+        run = (
+            await client.post(f"/api/v1/workflows/{workflow_id}/run", json={"message": message}, headers=headers)
+        ).json()
+        assert run["status"] == "success", message
+        assert [step["status"] for step in run["steps"]] == ["skipped"], message
+
+
+@pytest.mark.parametrize(
+    "pack_id, slug, days",
+    [(SALON, "salon-rebooking-nudge", 42), (HOME_SERVICES, "home-services-annual-service-reminder", 330)],
+)
+async def test_recall_style_workflows_use_their_own_interval_and_stay_off_until_enabled(
+    db_session, user_and_org, pack_id, slug, days
+):
+    _, org, _ = user_and_org
+
+    await entitlements.activate_pack(db_session, org.id, pack_id)
+
+    definition = (await _definitions(db_session, org.id))[slug]
+    assert definition.enabled is False
+    assert definition.trigger_type is TriggerType.schedule
+    assert definition.trigger_config["recall_after_days"] == days
+    assert definition.steps[0]["params"]["days"] == days  # the check and the config agree
+    assert definition.trigger_config["pack_id"] == pack_id
+
+
+async def test_all_four_packs_can_be_active_together_without_clashing(db_session, user_and_org):
+    _, org, _ = user_and_org
+    for pack_id in (DENTAL, REAL_ESTATE, SALON, HOME_SERVICES):
+        await entitlements.activate_pack(db_session, org.id, pack_id)
+
+    definitions = await _definitions(db_session, org.id)
+
+    pack_workflows = [d for d in definitions.values() if d.trigger_config.get("pack_id")]
+    assert len(pack_workflows) == 7  # 2 + 1 + 2 + 2, every slug distinct
+    assert len({d.slug for d in pack_workflows}) == 7

@@ -1,0 +1,206 @@
+# Salon, Spa & Barber Pack.
+#
+# For hair salons, barbershops, beauty, nail and spa businesses — appointment-led,
+# WhatsApp-heavy, and short on front-desk time because everyone is with a client.
+# The money is in three places: filling the diary, cutting no-shows, and getting
+# regulars back on a regular rhythm. The risk is in two: treatments that can hurt
+# someone (colour, chemical, laser, waxing) and promising results nobody can
+# guarantee.
+#
+# Prompt text is plain English, written to be edited by a stylist or the owner.
+# Practice-specific facts (prices, durations, deposit and cancellation rules,
+# opening hours, who does what) live in the owner's Business Context, not here.
+#
+# Both workflows are installed switched off on activation and use only the
+# engine's real vocabulary (src/workflows/steps.py); they are validated when the
+# pack loads.
+id: pack_salon
+name: Salon, Spa & Barber Pack
+version: 1.0.0
+category: salon
+description: >-
+  Tunes the agent team for salons, barbers and spas — booking by service and
+  stylist, patch-test and allergy care, no promised results, plus rebooking
+  reminders and an alert for reactions and burns.
+
+capability_requirements:
+  - calendar
+  - messaging
+
+agent_overrides:
+  receptionist:
+    extra_system_prompt: |
+      This business is a salon, barbershop or spa and the people you talk to are
+      clients. Be warm, quick and easy — most people message while busy.
+
+      Booking: find out the service(s) wanted, any preferred stylist or therapist,
+      and preferred days and times. Services have different lengths: only offer
+      times that fit the length given in the business information, and never guess
+      a duration, price or availability. If a combination of services is needed
+      (cut and colour, a full set plus a treatment), say the team will confirm the
+      total time.
+
+      Safety before booking:
+      - New colour, bleach, perming, relaxing, lash or brow tint, or a treatment
+        they haven't had here before: say a patch test is needed first (usually at
+        least 48 hours before) unless the business information says otherwise, and
+        offer to book it.
+      - Ask whether they have any known allergies or sensitivities, and whether
+        they are pregnant or have a skin condition, for treatments where that
+        matters. Don't judge the answer — note it and say the team will check the
+        treatment is suitable.
+      - If someone says they are having a reaction right now (burning, blistering,
+        swelling, a rash, trouble breathing after a product or treatment): tell
+        them to rinse or stop and get medical help straight away, and that the
+        salon will be told immediately. Never tell them it's "probably fine".
+
+      Never promise a result ("I'll make it blonde in one visit", "it won't
+      damage your hair"). Say the stylist will advise after a consultation.
+      Never invent prices, deposits or offers; use only what's in the business
+      information. For cancellations and late arrivals follow the stated policy
+      exactly, and never invent a fee or a notice period.
+
+      Group, bridal, party and out-of-hours bookings, and anything involving
+      under-18s, go to a person — collect the details and say someone will confirm.
+    extra_requires_approval:
+      - calendar:create_event
+
+  sales:
+    extra_system_prompt: |
+      Here, selling means helping regulars get the most from their visits — never
+      pushing. Suggest an add-on, a product, a course of treatments, a membership
+      or a gift voucher only if it is in the business information, and only when it
+      fits what the client has said they want.
+      - Never discount or add a freebie that isn't in the business information.
+      - Never promise a result or say a product or treatment will "fix" something.
+      - If someone hesitates on price, offer to explain what's included or book a
+        consultation instead of persuading them.
+      - Keep follow-ups short and friendly. One message, one ask.
+
+  marketing:
+    extra_system_prompt: |
+      Salon marketing works when it is visual, local and seasonal — and honest.
+      - Never guarantee results or claim a treatment is "damage-free", "permanent"
+        or "painless".
+      - Before-and-after photos, client names and reviews are only used if the
+        owner confirms the client agreed. Mark any draft that uses them for review.
+      - Good angles: seasonal looks (festive, wedding season, back to school),
+        rebooking rhythm ("it's about six weeks since your last cut"), filling
+        quiet days with offers the owner has approved, new-stylist introductions,
+        gift vouchers before holidays.
+      - Offers and discounts are only suggested as options for the owner to
+        approve, never stated as already available.
+
+  executive_assistant:
+    extra_system_prompt: |
+      When briefing the owner or manager, lead with what affects the day's income:
+      how full today's and tomorrow's diary is, empty slots that could still be
+      filled, late cancellations and no-shows, and any client flagged with a
+      reaction or complaint. Then regulars overdue for a rebooking. Keep client
+      detail to what the reader needs.
+
+  support:
+    extra_system_prompt: |
+      Complaints about a service ("it's not what I asked for", "it's gone patchy")
+      are common and fixable — be calm, thank them for telling the salon, and ask
+      for the date, the service and who did it so the owner can look into it.
+      - Never promise a redo, refund or discount; say the owner will come back to
+        them (no promised deadline).
+      - Never blame the stylist or the client.
+      - Any report of a reaction, burn, or injury is urgent: tell them to get
+        medical help if it is severe, and pass it to the owner straight away.
+
+workflow_templates:
+  - slug: salon-reaction-alert
+    name: Reaction and burn alert
+    description: >-
+      Watches new messages for a possible reaction or injury — an allergic
+      reaction to a product, a burn, a rash, blistering or swelling. The moment
+      one arrives it is flagged at the top of your Activity feed so someone can
+      call the client straight away, without waiting on anything else.
+    trigger_type: event
+    trigger_config:
+      event: conversation.message_received
+      channels: [web_chat, whatsapp]
+    steps:
+      - id: sounds_urgent
+        name: Does this sound like a reaction or injury?
+        type: branch
+        check: message_matches_keywords
+        params:
+          keywords:
+            - allergic
+            - allergy
+            - reaction
+            - burn
+            - burned
+            - burnt
+            - burning
+            - rash
+            - blister
+            - blisters
+            - blistering
+            - swelling
+            - swollen
+            - scalded
+            - chemical burn
+            - can't breathe
+            - hives
+            - itchy
+        on_false: stop
+      # Optional on purpose: if the AI provider is down, losing the summary must
+      # not lose the alert — the flag below needs no integration and no AI.
+      - id: summarise
+        name: Summarise it for whoever calls back
+        type: agent
+        agent: receptionist
+        optional: true
+        conversation_key: "workflow-reaction-{{run_id}}"
+        prompt: >-
+          A client wrote: "{{last_message}}". In one sentence, tell the team what
+          to ask first when they call the client back (what product or treatment,
+          when, and how bad it is now). Do not give medical advice.
+      - id: flag_it
+        name: Flag it for the team now
+        type: escalate
+        reason: "Possible reaction or injury after a treatment — call the client now. {{steps.summarise.response}}"
+
+  - slug: salon-rebooking-nudge
+    name: Time-to-rebook reminders
+    description: >-
+      Once a week, finds clients you haven't seen for about six weeks and drafts a
+      friendly "time for your next visit" message. You approve every message
+      before it goes out.
+    trigger_type: schedule
+    trigger_config:
+      interval_minutes: 10080
+      recall_after_days: 42
+      max_per_run: 25
+    steps:
+      - id: find_due
+        name: Find clients due a rebooking
+        type: branch
+        check: contacts_due_for_recall
+        params:
+          days: 42
+          limit: 25
+        on_false: stop
+      - id: draft_nudge
+        name: Write the reminder
+        type: agent
+        agent: receptionist
+        conversation_key: "workflow-salon-rebook-{{run_id}}"
+        prompt: >-
+          These clients are due their next visit: {{steps.find_due.names}}. Write
+          one short, friendly message we can send to a regular who hasn't been in
+          for about six weeks, inviting them to book their next appointment. Say
+          it's been a little while and we'd love to see them. Two sentences, no
+          pressure, no discount, nothing about their hair, skin or appearance.
+      - id: send_nudge
+        name: Send the reminder
+        type: tool
+        tool: whatsapp
+        as_agent: receptionist
+        arguments:
+          to: "{{steps.find_due.contacts.0.phone}}"
+          message: "{{steps.draft_nudge.response}}"

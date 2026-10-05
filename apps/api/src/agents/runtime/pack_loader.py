@@ -70,14 +70,23 @@ class Pack(BaseModel):
     workflow_templates: list[dict] = []
 
     @model_validator(mode="after")
-    def _workflow_templates_are_runnable(self) -> "Pack":
+    def _pack_is_consistent(self) -> "Pack":
         # Imported here: the workflow engine imports the agent runtime, which
         # imports this module.
+        from src.agents.runtime.loader import AgentNotFoundError, load_agent_config
         from src.workflows.steps import validate_definition
 
-        problems = [p for template in self.workflow_templates for p in validate_definition(template)]
+        problems = []
+        for slug in self.agent_overrides:
+            # An override aimed at an agent that doesn't exist would silently do
+            # nothing — a typo like "executive-assistant" must fail loudly instead.
+            try:
+                load_agent_config(slug)
+            except AgentNotFoundError:
+                problems.append(f"agent_overrides names an agent that doesn't exist: '{slug}'.")
+        problems += [p for template in self.workflow_templates for p in validate_definition(template)]
         if problems:
-            raise ValueError(f"Pack '{self.id}' has workflows that can't run: " + " ".join(problems))
+            raise ValueError(f"Pack '{self.id}' is invalid: " + " ".join(problems))
         return self
 
 

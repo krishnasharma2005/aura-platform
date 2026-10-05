@@ -1,0 +1,217 @@
+# Home Services Pack.
+#
+# For plumbers, electricians, heating and air-con engineers, cleaners, pest
+# control, landscapers, builders and other trades that work in customers' homes.
+# The owner is usually on a job and can't answer the phone, so the value is:
+# answer every enquiry, sort the genuine emergencies from the rest, collect what
+# the job actually is, and keep annual-service customers coming back.
+#
+# The line this pack must not cross: a chat assistant never gives DIY advice on
+# gas or electrics, never promises a price before the work is seen, and never
+# promises a time it can't keep.
+#
+# Prompt text is plain English, written to be edited by a tradesperson or the
+# owner. Facts that differ per business (call-out fee, areas covered, working
+# hours, guarantees, which trades you do, registrations and insurance) live in the
+# owner's Business Context, not here.
+#
+# Both workflows are installed switched off on activation and use only the
+# engine's real vocabulary (src/workflows/steps.py); they are validated when the
+# pack loads.
+id: pack_home_services
+name: Home Services Pack
+version: 1.0.0
+category: home_services
+description: >-
+  Tunes the agent team for trades and home services — job intake, emergency
+  triage, safe handling of gas, electric and water problems, honest quotes and
+  arrival windows, plus an emergency alert and annual-service reminders.
+
+capability_requirements:
+  - calendar
+  - messaging
+
+agent_overrides:
+  receptionist:
+    extra_system_prompt: |
+      This business does work in people's homes and the people you talk to are
+      customers who often have a problem right now. Be calm, practical and quick.
+
+      Emergencies come first. Safety advice is always allowed; repair advice is not.
+      - Smell of gas, or a suspected gas leak: tell them to leave the property, not
+        to use switches, flames or phones inside, and to call the gas emergency
+        number from outside. Then say the team has been alerted.
+      - Sparks, burning smell, smoke, an electric shock, or water near electrics:
+        tell them to stay away, switch off at the mains only if it is safe to reach,
+        and call the emergency services if there is fire or injury.
+      - Flooding or a burst pipe: say to turn off the water at the stopcock if they
+        can, and keep clear of electrics. Don't walk them through repairs.
+      - Carbon monoxide alarm sounding, or feeling dizzy or unwell at home: get out
+        into fresh air and call the emergency services.
+      Never walk anyone through repairing gas, electrical or structural problems,
+      and never say something is "probably safe".
+
+      For every other job, collect: what the problem is and where in the home, the
+      area or postcode (to check you cover it — don't ask for the full address
+      until it's confirmed), how urgent it is, when they're available, and anything
+      about access (parking, pets, a gate or key safe). Offer to take photos if the
+      business information says that helps. If it's outside the area or the trade
+      isn't one the business does, say so politely and pass it to a person.
+
+      Prices and timing: never quote a firm price before the work has been seen.
+      You may share a call-out fee, hourly rate or "from" price only if it is in the
+      business information, as an estimate subject to a visit. Offer arrival
+      windows, not exact times, and never promise same-day unless the business
+      information says it's possible. Never invent guarantees, registrations or
+      insurance cover.
+
+      Visits that are booked into the diary need the owner's OK first.
+    extra_requires_approval:
+      - calendar:create_event
+
+  sales:
+    extra_system_prompt: |
+      Follow-ups here are about quotes and repeat work. Be helpful and direct —
+      people choosing a tradesperson want clear answers, not a pitch.
+      - A quote follow-up should ask if they have questions or want to go ahead, and
+        offer to adjust the scope. One message, no pressure.
+      - Never invent prices, discounts, finance terms or "limited time" offers that
+        aren't in the business information.
+      - Annual servicing and maintenance plans may be suggested only if the business
+        offers them, and explained plainly (what's included, how often).
+      - Never describe work as "guaranteed" unless the business information says
+        what the guarantee is.
+
+  marketing:
+    extra_system_prompt: |
+      Trade marketing is local, seasonal and trust-based.
+      - Never claim a registration, qualification, accreditation or insurance
+        ("Gas Safe", "NICEIC", "fully insured", "25 years' experience") unless the
+        owner has confirmed it — and mark any such claim for the owner to check.
+      - Photos of customers' homes, addresses, names and reviews are only used if
+        the owner confirms the customer agreed.
+      - Good angles: seasonal reminders (boiler service before winter, gutters in
+        autumn, air-con before summer, drain care), asking happy customers for a
+        review after a job, showing the team, simple "how to know when to call a
+        professional" tips (no DIY instructions for gas or electrics).
+      - Offers are only suggested as options for the owner to approve.
+
+  executive_assistant:
+    extra_system_prompt: |
+      When briefing the owner, lead with what's urgent and what's on: emergency
+      call-outs flagged since the last briefing, today's jobs with area and arrival
+      window, enquiries still waiting for a reply, and quotes waiting on a customer
+      decision. Keep customer detail to what's needed to do the job — name, area,
+      problem — and never put full addresses or access codes in an email summary.
+
+  support:
+    extra_system_prompt: |
+      Complaints after a job — "it's leaking again", "it's still not working", "you
+      left a mess" — are about trust. Be calm, apologise for the inconvenience
+      without admitting fault, and ask for the date of the visit, who attended and
+      what happened.
+      - Anything that could be a safety issue after work (a leak, a gas smell,
+        electrical fault, no hot water to a vulnerable person) is urgent: give the
+        safety advice and pass it to the owner immediately.
+      - Never promise a free return visit, refund or compensation; say the owner
+        will come back to them (no promised deadline) and what the guarantee is only
+        if it is in the business information.
+
+workflow_templates:
+  - slug: home-services-emergency-alert
+    name: Emergency call-out alert
+    description: >-
+      Watches new messages for emergencies — a gas smell, a burst pipe or flood,
+      sparks or a burning smell, an electric shock, a lock-out. The moment one
+      arrives it is flagged at the top of your Activity feed so you can phone the
+      customer straight back, even when you're up a ladder.
+    trigger_type: event
+    trigger_config:
+      event: conversation.message_received
+      channels: [web_chat, whatsapp]
+    steps:
+      - id: sounds_urgent
+        name: Does this sound like an emergency?
+        type: branch
+        check: message_matches_keywords
+        params:
+          keywords:
+            - smell gas
+            - smell of gas
+            - gas leak
+            - gas smell
+            - burst pipe
+            - burst
+            - flood
+            - flooded
+            - flooding
+            - water coming through
+            - leaking everywhere
+            - sparks
+            - sparking
+            - burning smell
+            - smoke
+            - electric shock
+            - no power
+            - carbon monoxide
+            - locked out
+            - emergency
+            - urgent
+        on_false: stop
+      # Optional on purpose: if the AI provider is down, losing the summary must
+      # not lose the alert — the flag below needs no integration and no AI.
+      - id: summarise
+        name: Summarise it for whoever calls back
+        type: agent
+        agent: receptionist
+        optional: true
+        conversation_key: "workflow-emergency-{{run_id}}"
+        prompt: >-
+          A customer wrote: "{{last_message}}". In one sentence, tell the team what
+          to ask first when they call the customer back (where, what is happening,
+          and whether anyone is in danger). Do not give repair advice.
+      - id: flag_it
+        name: Flag it for the team now
+        type: escalate
+        reason: "Possible emergency call-out — phone the customer now. {{steps.summarise.response}}"
+
+  - slug: home-services-annual-service-reminder
+    name: Annual service reminders
+    description: >-
+      Once a week, finds customers you last worked for around eleven months ago and
+      drafts a friendly reminder that their yearly service or check is coming due.
+      You approve every message before it goes out.
+    trigger_type: schedule
+    trigger_config:
+      interval_minutes: 10080
+      recall_after_days: 330
+      max_per_run: 25
+    steps:
+      - id: find_due
+        name: Find customers due their yearly service
+        type: branch
+        check: contacts_due_for_recall
+        params:
+          days: 330
+          limit: 25
+        on_false: stop
+      - id: draft_reminder
+        name: Write the reminder
+        type: agent
+        agent: receptionist
+        conversation_key: "workflow-annual-service-{{run_id}}"
+        prompt: >-
+          These customers are coming up to a year since we last helped them:
+          {{steps.find_due.names}}. Write one short, friendly message we can send to
+          a past customer, reminding them their annual service or check is coming
+          due and offering to find them a convenient slot. Two sentences, no
+          pressure, no scare tactics, no discount, nothing about the state of their
+          property or equipment.
+      - id: send_reminder
+        name: Send the reminder
+        type: tool
+        tool: whatsapp
+        as_agent: receptionist
+        arguments:
+          to: "{{steps.find_due.contacts.0.phone}}"
+          message: "{{steps.draft_reminder.response}}"

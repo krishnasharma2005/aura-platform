@@ -1,4 +1,4 @@
-import { Building2, Package, type LucideIcon } from "lucide-react";
+import { Building2, Package, Scissors, Smile, Wrench, type LucideIcon } from "lucide-react";
 
 /**
  * Unlike lib/integrations.ts, the pack catalog's real content (name,
@@ -9,6 +9,9 @@ import { Building2, Package, type LucideIcon } from "lucide-react";
  */
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   real_estate: Building2,
+  dental: Smile,
+  salon: Scissors,
+  home_services: Wrench,
 };
 
 export function iconForPackCategory(category: string): LucideIcon {

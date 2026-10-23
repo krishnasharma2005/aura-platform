@@ -69,6 +69,63 @@
     return node;
   }
 
+  /* Renders an assistant reply as light formatting: **bold**, *italic*,
+     "- " / "* " bullet lists and "#" headings. The reply is untrusted (a visitor
+     can steer what the model writes, and this runs on someone else's website), so
+     it is never treated as HTML: every node is created with createElement from a
+     fixed set of tags or createTextNode, and no attribute ever comes from the
+     text. Links are not made clickable — "[label](url)" is shown as plain text. */
+  var INLINE = /\*\*([^*\n]+?)\*\*|\*(\S(?:[^*\n]*\S)?)\*/g;
+  var BULLET = /^\s*[-*•]\s+(.*)$/;
+  var HEADING = /^\s*#{1,6}\s+(.*)$/;
+
+  function appendInline(parent, text) {
+    text = text.replace(/\[([^\]\n]+)\]\(([^)\n]+)\)/g, "$1 ($2)").replace(/`([^`\n]*)`/g, "$1");
+    var last = 0;
+    var match;
+    INLINE.lastIndex = 0;
+    while ((match = INLINE.exec(text)) !== null) {
+      if (match.index > last) parent.appendChild(document.createTextNode(text.slice(last, match.index)));
+      var wrapper = document.createElement(match[1] !== undefined ? "strong" : "em");
+      wrapper.appendChild(document.createTextNode(match[1] !== undefined ? match[1] : match[2]));
+      parent.appendChild(wrapper);
+      last = match.index + match[0].length;
+    }
+    if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+  }
+
+  function appendFormatted(node, text) {
+    var lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+    var list = null;
+    lines.forEach(function (line, index) {
+      var bullet = BULLET.exec(line);
+      if (bullet) {
+        if (!list) {
+          list = document.createElement("ul");
+          node.appendChild(list);
+        }
+        var item = document.createElement("li");
+        appendInline(item, bullet[1]);
+        list.appendChild(item);
+        return;
+      }
+      list = null;
+      var heading = HEADING.exec(line);
+      if (heading) {
+        var title = document.createElement("strong");
+        appendInline(title, heading[1]);
+        node.appendChild(title);
+      } else {
+        appendInline(node, line);
+      }
+      // The bubble preserves line breaks, so a newline separates paragraphs. A
+      // list brings its own spacing, so no break is added just before one.
+      var next = lines[index + 1];
+      var beforeList = next !== undefined && BULLET.test(next);
+      if (index < lines.length - 1 && !beforeList) node.appendChild(document.createTextNode("\n"));
+    });
+  }
+
   // --- Only reached once /status confirms the business wants this on. ---
   function mount() {
     var host = el("div", { id: "aura-widget-host" });
@@ -98,6 +155,9 @@
       ".msg.bot{align-self:flex-start;background:#fff;border:1px solid #e5e7eb;color:#111827;}",
       ".msg.user{align-self:flex-end;background:#1f2937;color:#fff;}",
       ".msg.pending{opacity:.55;}",
+      ".msg ul{margin:4px 0;padding-left:18px;white-space:normal;}",
+      ".msg li{margin:2px 0;}",
+      ".msg strong{font-weight:600;}",
       ".composer{display:flex;gap:8px;padding:10px;border-top:1px solid #e5e7eb;background:#fff;}",
       ".composer textarea{flex:1;resize:none;border:1px solid #d1d5db;border-radius:10px;padding:9px 11px;font-size:13.5px;font-family:inherit;max-height:80px;min-height:38px;}",
       ".composer textarea:focus{outline:2px solid #1f2937;outline-offset:1px;}",
@@ -161,7 +221,9 @@
     }
 
     function addMessage(text, kind, pending) {
-      var node = el("div", { class: "msg " + kind + (pending ? " pending" : "") }, [text]);
+      var node = el("div", { class: "msg " + kind + (pending ? " pending" : "") }, []);
+      if (kind === "bot" && !pending) appendFormatted(node, text);
+      else node.appendChild(document.createTextNode(text));
       messagesEl.appendChild(node);
       messagesEl.scrollTop = messagesEl.scrollHeight;
       return node;

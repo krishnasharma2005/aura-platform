@@ -53,14 +53,9 @@ def _use_gateway(app, gateway: FakeGateway) -> FakeGateway:
 
 
 def _force_ai_mode(monkeypatch) -> None:
-    """The Receptionist runs the predefined scripted flow by default right now
-    (agents/configs/receptionist.yaml: chat_mode: scripted) so the product
-    works with no OPENAI_API_KEY configured — see agents/scripted/. That
-    means it never reaches the AI Gateway, which is exactly what these tests
-    exist to guard. Force the AI-driven path for the duration of one test so
-    that machinery keeps real coverage for when a key exists and the flag
-    flips back; the scripted flow has its own tests in test_evals.py and
-    test_agent_runtime.py."""
+    """Pin the AI-driven path for one test regardless of what the Receptionist's
+    config says, so these tests keep guarding the AI Gateway machinery even if a
+    scripted chat_mode is ever set again."""
     real_config = public_module.load_agent_config(public_module.RECEPTIONIST_SLUG)
     ai_config = real_config.model_copy(update={"chat_mode": None})
     monkeypatch.setattr(public_module, "load_agent_config", lambda slug: ai_config)
@@ -97,9 +92,8 @@ async def test_visitor_gets_a_reply_and_a_token_to_continue(
     assert body["reply"] == "We're open until 5:30pm today."
     assert body["conversation_token"]
     # Nothing internal comes back — no org id, no agent internals, no
-    # approvals. `options`/`node_id` are legitimate public fields (the
-    # scripted menu flow's choices), always present but empty/None here since
-    # this response came from the real AI path, not the scripted one.
+    # approvals. `options`/`node_id` are legitimate public fields (a scripted
+    # menu flow's choices), always present but empty/None on the AI path.
     assert set(body) == {"reply", "conversation_token", "options", "node_id"}
     assert body["options"] == []
     assert body["node_id"] is None
@@ -512,3 +506,28 @@ async def test_authenticated_routes_keep_the_strict_allowlist(client: AsyncClien
         "/api/v1/organizations", headers={"Origin": "https://not-our-dashboard.example"}
     )
     assert response.headers.get("access-control-allow-origin") != "*"
+
+
+async def test_the_widget_reaches_the_ai_by_default_and_never_serves_a_canned_business(
+    client: AsyncClient, app, db_session: AsyncSession
+):
+    """No override here: this is the Receptionist exactly as shipped. It used to
+    run a scripted menu with "Riverside Dental" written into it for every
+    customer's visitors; it must go through the AI like every other agent."""
+    org = await _org_with_public_chat(db_session, name="Bright Spark Electrical")
+    gateway = _use_gateway(app, FakeGateway([LLMResponse(content="Hi, how can we help?")]))
+
+    response = await client.post(
+        f"/api/v1/public/chat/{org.public_id}", json={"message": "My lights keep flickering"}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["reply"] == "Hi, how can we help?"
+    assert "Riverside" not in response.text
+    assert body["options"] == [] and body["node_id"] is None
+    assert gateway.complete.await_count == 1
+
+
+def test_the_receptionist_is_ai_driven_as_shipped():
+    assert public_module.load_agent_config(public_module.RECEPTIONIST_SLUG).chat_mode is None

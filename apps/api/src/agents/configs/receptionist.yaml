@@ -26,12 +26,6 @@ system_prompt: |
     follow-up.
   - Never invent availability, prices, or policies you weren't given.
 memory_scope: receptionist
-# TEMPORARY: the real AI-driven flow above is fully built and stays intact
-# for when an OPENAI_API_KEY exists, but it 503s without one. Until then the
-# Receptionist's chat surfaces (dashboard + public widget) run a predefined,
-# menu-driven conversation instead — see src/agents/scripted/receptionist_flow.py
-# and docs/scope-ledger.md. Remove this line to switch back to the AI pipeline.
-chat_mode: scripted
 allowed_tools:
   - calendar
   - gmail

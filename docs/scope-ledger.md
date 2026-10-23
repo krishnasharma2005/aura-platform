@@ -77,6 +77,8 @@ Each of these was added because something downstream genuinely needed it. None w
 
 ## B2. Temporary simplification — the Receptionist's scripted chat (2026-09-03)
 
+> **REVERTED 2026-10-23.** `chat_mode: scripted` was deleted from `receptionist.yaml`, so the dashboard chat and the public website widget now use the real AI Receptionist (business context, active packs, approval gate). Reason: the Gemini provider removed the "no AI key" problem this worked around, and the scripted menu had "Riverside Dental" written into it, so every customer's website visitors were greeted as that clinic. **Consequence:** with no AI provider key configured (`OPENAI_API_KEY` or `GEMINI_API_KEY`), the Receptionist's chat now returns a clean "not set up" error instead of a menu. The code below is unused but left in place — see "To remove later". The rest of this entry is kept as history.
+
 **Founder-directed:** *"keep everything predefined, give options to user to select from and reply according to that, we will build the proper chatbot later."*
 
 The Receptionist now answers from a fixed decision tree instead of the AI pipeline. This is a **downgrade in capability but an upgrade in working state**: with no `OPENAI_API_KEY` configured, every chat surface previously returned a 503, so both the dashboard chat and the public widget were non-functional. They now work end to end with zero AI dependency.

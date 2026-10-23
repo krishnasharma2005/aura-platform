@@ -28,7 +28,7 @@ import asyncio
 import hashlib
 import io
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 
 from docx import Document as DocxDocument
 from sqlalchemy import delete, select
@@ -672,7 +672,12 @@ async def _seed_filler_conversations(
         # Walk backwards through the week, two or three threads a day.
         day = index % 7
         hour = 9 + (index * 3) % 8
-        started = now - timedelta(days=day, hours=hour)
+        # Anchor to the calendar day, not "N hours ago", so every one of the
+        # seven days gets threads whatever time the seed runs. Today's are
+        # clamped to just before now so nothing lands in the future (or, early
+        # in the day, on yesterday's date).
+        day_start = datetime.combine(now.date() - timedelta(days=day), time.min)
+        started = max(day_start, min(day_start + timedelta(hours=hour), now - timedelta(minutes=5)))
         channel = (
             ConversationChannel.dashboard
             if agent in ("executive_assistant",)
@@ -944,8 +949,8 @@ async def _seed_pending_approval(db: AsyncSession, org: Organization) -> None:
     )
 
 
-async def seed(db: AsyncSession) -> dict[str, object]:
-    now = datetime.now(UTC).replace(tzinfo=None)
+async def seed(db: AsyncSession, now: datetime | None = None) -> dict[str, object]:
+    now = now or datetime.now(UTC).replace(tzinfo=None)
     gateway = _SeedGateway()
 
     org = await _upsert_org(db)

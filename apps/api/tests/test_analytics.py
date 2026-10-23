@@ -9,6 +9,7 @@ org holding deliberately different volumes.
 import uuid
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -250,3 +251,79 @@ async def test_the_seeded_demo_produces_numbers_worth_showing(
     ).json()
     assert runs
     assert any(step["status"] == "awaiting_approval" for run in runs for step in run["steps"])
+
+
+@pytest.mark.parametrize(
+    "now",
+    [
+        datetime(2026, 6, 15, 0, 2),  # just after midnight: "5 minutes ago" is still yesterday
+        datetime(2026, 6, 15, 5, 36),  # the hour CI failed at
+        datetime(2026, 6, 15, 6, 0),
+        datetime(2026, 6, 15, 12, 0),
+        datetime(2026, 6, 15, 23, 59),
+    ],
+    ids=lambda value: value.strftime("%H:%M"),
+)
+async def test_the_seed_fills_every_day_whatever_time_it_runs(
+    db_session: AsyncSession, now: datetime
+):
+    """Filler used to be "9-16 hours before now", which before ~09:00 UTC put
+    today's threads on yesterday's date and left an empty bucket."""
+    from scripts.seed_demo import ORG_SLUG, seed
+    from sqlalchemy import select
+
+    await seed(db_session, now=now)
+    org = (
+        await db_session.execute(select(Organization).where(Organization.slug == ORG_SLUG))
+    ).scalar_one()
+    started = (
+        await db_session.execute(
+            select(Conversation.started_at).where(
+                Conversation.org_id == org.id, Conversation.key.like("demo-enquiry-%")
+            )
+        )
+    ).scalars().all()
+
+    days_with_threads = {value.date() for value in started}
+    assert days_with_threads == {(now - timedelta(days=n)).date() for n in range(7)}
+    assert all(value <= now for value in started)
+
+
+@pytest.mark.parametrize(
+    "frozen",
+    [datetime(2026, 6, 15, 0, 2), datetime(2026, 6, 15, 5, 36), datetime(2026, 6, 15, 23, 59)],
+    ids=lambda value: value.strftime("%H:%M"),
+)
+async def test_the_demo_charts_a_full_week_at_any_hour_of_the_day(
+    client: AsyncClient, db_session: AsyncSession, monkeypatch, frozen: datetime
+):
+    """The assertion that failed in CI at 05:36 UTC, end to end: seed and read the
+    analytics with the clock pinned to the same instant, and check no day on the
+    chart is empty."""
+    from scripts.seed_demo import ORG_SLUG, seed
+    from sqlalchemy import select
+    from src.api.v1 import analytics as analytics_module
+
+    class _Frozen(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return frozen.replace(tzinfo=tz) if tz is not None else frozen
+
+    monkeypatch.setattr(analytics_module, "datetime", _Frozen)
+
+    await seed(db_session, now=frozen)
+    org = (
+        await db_session.execute(select(Organization).where(Organization.slug == ORG_SLUG))
+    ).scalar_one()
+    user = (
+        await db_session.execute(select(User).where(User.email == "sarah@riversidedental.co.uk"))
+    ).scalar_one()
+    headers = {
+        "Authorization": f"Bearer {create_access_token(user.id)}",
+        "X-Organization-Id": str(org.id),
+    }
+
+    body = (await client.get("/api/v1/analytics/summary?days=7", headers=headers)).json()
+
+    assert len(body["daily"]) == 7
+    assert all(point["conversations"] > 0 for point in body["daily"]), body["daily"]

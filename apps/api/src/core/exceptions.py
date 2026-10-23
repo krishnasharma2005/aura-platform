@@ -59,6 +59,25 @@ class AIUnavailableError(AuraError):
     )
 
 
+class RateLimitedError(AuraError):
+    """Too many attempts. `retry_after` (seconds) is sent as the Retry-After header
+    so a client can tell the person how long to wait."""
+
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    default_message = "Too many attempts. Please wait a few minutes and try again."
+
+    def __init__(self, message: str | None = None, retry_after: int | None = None):
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+class TemporarilyUnavailableError(AuraError):
+    """Something we depend on is down. Expected to clear up on its own."""
+
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_message = "That isn't available right now. Please try again in a few minutes."
+
+
 class AuthenticationError(AuraError):
     status_code = status.HTTP_401_UNAUTHORIZED
     default_message = "Please sign in again."
@@ -74,7 +93,8 @@ async def aura_error_handler(request: Request, exc: AuraError) -> JSONResponse:
         "aura_error",
         extra={"extra_fields": {"path": request.url.path, "error_type": type(exc).__name__}},
     )
-    return JSONResponse(status_code=exc.status_code, content={"error": exc.message})
+    headers = {"Retry-After": str(exc.retry_after)} if getattr(exc, "retry_after", None) else None
+    return JSONResponse(status_code=exc.status_code, content={"error": exc.message}, headers=headers)
 
 
 async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:

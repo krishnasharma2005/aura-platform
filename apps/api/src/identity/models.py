@@ -25,8 +25,29 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+    # Set when the password is reset. Any sign-in token issued before this moment
+    # is refused, so resetting a password signs the account out everywhere —
+    # which is the point of resetting one after it may have been compromised.
+    password_changed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     memberships: Mapped[list["Membership"]] = relationship(back_populates="user")
+
+
+class PasswordResetToken(Base):
+    """One emailed "reset your password" link. Only a SHA-256 of the token is
+    stored, never the token itself, so a database read can't be turned into
+    account takeovers. Single-use (`used_at`) and short-lived (`expires_at`)."""
+
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
 
 
 class Organization(Base):

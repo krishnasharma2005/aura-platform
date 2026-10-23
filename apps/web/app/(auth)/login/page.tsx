@@ -2,13 +2,25 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { errorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Shown after a successful password reset (?reset=1). Reads the query string, which
+// the app router wants under Suspense, so it is its own small component.
+function PasswordChangedNotice() {
+  const searchParams = useSearchParams();
+  if (searchParams.get("reset") !== "1") return null;
+  return (
+    <p role="status" className="rounded-md border border-success/25 bg-success/10 px-3 py-2 text-sm text-success">
+      Your password was changed. Sign in with the new one.
+    </p>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,6 +52,9 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <React.Suspense fallback={null}>
+            <PasswordChangedNotice />
+          </React.Suspense>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">Work email</Label>
             <Input
@@ -53,7 +68,12 @@ export default function LoginPage() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-baseline justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"

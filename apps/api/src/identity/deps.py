@@ -4,6 +4,8 @@ org-scoped data must depend on `get_active_organization` (or `require_org_role`)
 so no query can ever cross organization boundaries."""
 
 import uuid
+from datetime import UTC
+from typing import Any
 
 import jwt
 from fastapi import Depends, Header
@@ -14,6 +16,19 @@ from src.core.db import get_db
 from src.core.exceptions import AuthenticationError, NotFoundError, PermissionError
 from src.core.security import decode_token
 from src.identity.models import Membership, MembershipRole, Organization, User
+
+
+def token_predates_password_change(user: User, claims: dict[str, Any]) -> bool:
+    """True when a sign-in token was issued before the user's password was last
+    reset — i.e. it belongs to a session the reset was meant to end. Token times
+    are whole seconds, so one issued in the same second as the change is allowed."""
+    changed = user.password_changed_at
+    if changed is None:
+        return False
+    issued = claims.get("iat")
+    if not isinstance(issued, (int, float)):
+        return True
+    return issued < int(changed.replace(tzinfo=UTC).timestamp())
 
 
 async def get_current_user(
@@ -39,6 +54,8 @@ async def get_current_user(
     user = result.scalar_one_or_none()
     if user is None:
         raise AuthenticationError("Please sign in again.")
+    if token_predates_password_change(user, payload):
+        raise AuthenticationError("Your password was changed. Please sign in again.")
     return user
 
 

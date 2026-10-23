@@ -51,6 +51,7 @@ from src.agents.business_context import BusinessContext  # noqa: F401  (same)
 from src.agents.entitlements import OrgPackEntitlement  # noqa: F401  (same)
 from src.conversations.models import Contact, Conversation, Message  # noqa: F401  (same)
 from src.core.db import Base, engine, async_session_factory
+from src.core import security as security_module
 from src.core.security import create_access_token
 from src.identity.models import Membership, MembershipRole, Organization, User
 from src.identity.public_id import generate_public_id
@@ -60,6 +61,12 @@ from src.workflows.models import (  # noqa: F401  (registers the workflow tables
     WorkflowRun,
     WorkflowStepRun,
 )
+
+
+# bcrypt is deliberately slow (~0.25s a hash at the production cost). The suite
+# signs up and signs in hundreds of times, so run it at the cheapest cost bcrypt
+# allows. Nothing here checks hash strength; production keeps its own setting.
+security_module.pwd_context.update(bcrypt__default_rounds=4)
 
 
 @pytest_asyncio.fixture(autouse=True)

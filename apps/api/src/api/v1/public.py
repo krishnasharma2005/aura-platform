@@ -156,16 +156,7 @@ def get_gateway() -> AIGateway:
     return AIGateway()
 
 
-def _client_ip(request: Request) -> str:
-    """X-Forwarded-For is trivially forgeable, so it's only honoured when the
-    deployment says it sits behind a proxy that overwrites it. Otherwise the
-    per-IP limit would be one header away from useless."""
-    settings = get_settings()
-    if settings.TRUST_PROXY_HEADERS:
-        forwarded = request.headers.get("x-forwarded-for")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+_client_ip = rate_limit.client_ip
 
 
 async def _within_limit(bucket: str, limit: int, window_seconds: int) -> bool:

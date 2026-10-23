@@ -214,6 +214,20 @@ export const api = {
       });
       return completeAuth(tokens);
     },
+    // Always answers the same way whether or not the address has an account, so
+    // the screen can say "if that address has an account, we've sent a link".
+    forgotPassword: (email: string) =>
+      request<{ message: string }>("/auth/forgot-password", {
+        method: "POST",
+        body: { email },
+        authenticated: false,
+      }),
+    resetPassword: (token: string, password: string) =>
+      request<{ message: string }>("/auth/reset-password", {
+        method: "POST",
+        body: { token, password },
+        authenticated: false,
+      }),
   },
   organizations: {
     create: async (data: CreateOrganizationRequest): Promise<Organization> => {

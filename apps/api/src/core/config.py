@@ -155,6 +155,39 @@ class Settings(BaseSettings):
         description="Meta app secret, used to validate the X-Hub-Signature-256 header on inbound webhooks.",
     )
 
+    # --- Sign-in protection (src/identity/login_limits.py) ---
+    AUTH_LOGIN_MAX_FAILURES: int = Field(
+        default=5,
+        description=(
+            "Wrong passwords allowed per email address from one IP within the window before sign-in "
+            "is paused. The same email across all IPs allows 4x this; one IP across all emails 6x."
+        ),
+    )
+    AUTH_LOGIN_WINDOW_SECONDS: int = Field(default=15 * 60)
+    AUTH_SIGNUP_IP_LIMIT: int = Field(default=20, description="Sign-ups per IP per hour.")
+
+    # --- Password reset (src/identity/password_reset.py) ---
+    PASSWORD_RESET_TTL_MINUTES: int = Field(default=60, description="How long an emailed reset link stays valid.")
+
+    # --- Outgoing email (src/notifications/mailer.py) ---
+    # Any SMTP provider works (Brevo, Resend, Postmark, Gmail with an app password...).
+    # Leave SMTP_HOST unset and nothing is sent: in development the message is logged
+    # so you can follow the link; in production it is NOT logged (a reset link in a log
+    # is an account takeover for anyone who can read logs) and a warning says email
+    # isn't configured.
+    SMTP_HOST: str | None = Field(default=None, description="SMTP server. Setting this turns email on.")
+    SMTP_PORT: int = Field(default=587)
+    SMTP_USERNAME: str | None = Field(default=None)
+    SMTP_PASSWORD: str | None = Field(default=None)
+    SMTP_USE_SSL: bool = Field(
+        default=False,
+        description="True for implicit TLS (usually port 465). False uses STARTTLS (usually port 587).",
+    )
+    EMAIL_FROM: str = Field(
+        default="Mesnium <no-reply@localhost>",
+        description="The From address. Must be an address your SMTP provider has verified.",
+    )
+
     # --- Notifications (see src/notifications/notifier.py) ---
     NOTIFY_CHANNEL: str = Field(
         default="console",

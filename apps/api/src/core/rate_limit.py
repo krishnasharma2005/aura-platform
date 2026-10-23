@@ -14,6 +14,9 @@ a customer of something the infrastructure did.
 
 import time
 
+from fastapi import Request
+
+from src.core.config import get_settings
 from src.core.logging import get_logger
 from src.memory.short_term import get_redis
 
@@ -37,3 +40,14 @@ async def allow(bucket: str, limit: int, window_seconds: int) -> bool:
         logger.error("rate_limit_unavailable", exc_info=exc, extra={"extra_fields": {"bucket": bucket}})
         raise RateLimiterUnavailable(bucket) from exc
     return count <= limit
+
+
+def client_ip(request: Request) -> str:
+    """X-Forwarded-For is trivially forgeable, so it's only honoured when the
+    deployment says it sits behind a proxy that overwrites it. Otherwise a
+    per-IP limit would be one header away from useless."""
+    if get_settings().TRUST_PROXY_HEADERS:
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"

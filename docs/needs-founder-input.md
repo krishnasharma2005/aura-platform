@@ -150,6 +150,24 @@ the app — that part needed no founder input.
 the current per-agent lists are in `src/agents/configs/*.yaml` under
 `requires_approval` and are a starting guess, not a researched default.
 
+### 9b. Outgoing email — password reset is built; the provider account isn't
+**Added 2026-10-24.** Password reset (`POST /auth/forgot-password`, `/auth/reset-password`,
+the Forgot password screens) and the sender behind it (`src/notifications/mailer.py`)
+are built and tested. The sender speaks plain **SMTP**, so any provider works —
+Brevo and Resend both have free tiers — and choosing one is only settings:
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `EMAIL_FROM`.
+
+**What's needed from you:** an account with one provider, and a sending domain or
+address it has verified (`EMAIL_FROM` must be an address the provider allows).
+Until then **nobody can actually receive a reset email**: in development the link is
+written to the API log; in production nothing is sent (and the link is deliberately
+not logged) — so a customer who forgets their password cannot get back in. Treat this
+as a launch blocker.
+
+**Still not using the mailer:** the "an approval is waiting" notification (#9 above)
+and member invitations. Both can send through `mailer.get_mailer()` now; neither has
+been switched over yet.
+
 ## 10. WhatsApp inbound webhook (Meta Cloud API)
 **What:** in addition to the sending credentials in #3, the inbound direction
 needs (a) a **Meta app secret**, (b) a **verify token** — any random string we

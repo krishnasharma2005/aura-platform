@@ -21,11 +21,11 @@ A multi-tenant **AI business operating system** for small businesses:<br/>clinic
 
 <table>
 <tr>
-<td align="center"><strong>215</strong><br/><sub>backend tests</sub></td>
+<td align="center"><strong>257</strong><br/><sub>backend tests</sub></td>
 <td align="center"><strong>7</strong><br/><sub>agents</sub></td>
 <td align="center"><strong>4</strong><br/><sub>industry packs</sub></td>
-<td align="center"><strong>49</strong><br/><sub>API operations</sub></td>
-<td align="center"><strong>7</strong><br/><sub>migrations</sub></td>
+<td align="center"><strong>51</strong><br/><sub>API operations</sub></td>
+<td align="center"><strong>8</strong><br/><sub>migrations</sub></td>
 <td align="center"><strong>14</strong><br/><sub>eval scenarios</sub></td>
 </tr>
 </table>
@@ -92,6 +92,8 @@ This holds on every path — the dashboard, the public website widget, inside au
 | **Untrusted input** | Documents, tool results and customer messages are delimited and framed as data, never instructions |
 | **Tool allowlist** per agent | An agent cannot call a tool outside its config, even if the model asks |
 | **Packs can only add** | An industry pack can extend an agent's prompt, tools and approval rules — it can never remove or loosen what the base agent has, and workflow steps obey the pack-merged rules too |
+| **Sign-in protection** | Password guessing is slowed by three counters (one address from one IP, one address from anywhere, one IP across addresses) checked *before* the password, so a lockout never reveals whether a guess was right. Unknown addresses are counted the same as real ones. “Forgot password” is never blocked |
+| **Password recovery** | Emailed single-use, one-hour links; only a hash of the token is stored; the answer never reveals whether an address has an account; a reset signs the account out everywhere |
 | **Encrypted at rest** | Integration tokens use Fernet; production refuses to boot without a key |
 | **Safe connecting** | A pasted key is verified against the other app before it is saved; a Shopify store address or WhatsApp number is validated against a strict pattern *before* any request is made |
 | **Untrusted replies, rendered safely** | The website widget never treats an AI reply as HTML — only fixed formatting elements are created, and links stay plain text |
@@ -143,6 +145,9 @@ Pasted keys are checked against the other app before saving (a wrong key is expl
 
 ### 🧠 AI providers
 The AI gateway is provider-agnostic. Choose **OpenAI** or **Gemini** with `AI_PROVIDER`; both normalise into the same response shape, so nothing above the gateway cares which is active. Transient failures retry with backoff; if a provider is out of quota or down, users get a plain "temporarily unavailable" message rather than a stack trace.
+
+### 🔐 Accounts
+Sign up, sign in, **forgot / reset password** by emailed link, and a minimum password length that matches what the hashing can actually check. Sign-in and sign-up are rate-limited. Email goes out over plain **SMTP**, so any provider works — set `SMTP_HOST` and friends (see Configuration).
 
 ### 📥 Channels
 Owner dashboard · embeddable website chat widget · WhatsApp webhook.
@@ -246,7 +251,7 @@ apps/
                            delegate (orchestrator), Google OAuth, key verification
       conversations/       Durable transcripts, contacts, human takeover
       evals/               14 scenarios incl. refusal and blocked-tool cases
-      api/v1/              49 operations
+      api/v1/              51 operations
   web/                     Next.js 14 dashboard + embeddable widget
 docs/                      Customer profile, scope ledger, open decisions
 infra/                     docker-compose for local Postgres and Redis
@@ -257,7 +262,7 @@ infra/                     docker-compose for local Postgres and Redis
 ## 🧪 Testing
 
 ```bash
-cd apps/api && python -m pytest            # 215 tests
+cd apps/api && python -m pytest            # 257 tests
 cd apps/web && npm run lint && npm run build
 ```
 
@@ -277,7 +282,9 @@ Everything lives in `apps/api/.env.example`. The essentials:
 | `AI_PROVIDER` | `openai` or `gemini` — see "An AI key is needed for chat" |
 | `OPENAI_API_KEY` / `GEMINI_API_KEY` | One for whichever provider you chose |
 | `GOOGLE_OAUTH_CLIENT_ID` / `_SECRET` / `GOOGLE_OAUTH_REDIRECT_URI` | For the Google sign-in flow |
-| `APP_URL` | Dashboard address, used in links and the Google redirect back |
+| `APP_URL` | Dashboard address, used in links (including password-reset links) and the Google redirect back |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `EMAIL_FROM` | Outgoing email for password reset. Leave `SMTP_HOST` blank and nothing is sent — in development the link is logged; in production it is *not*, so reset can't work until this is set |
+| `AUTH_LOGIN_MAX_FAILURES`, `AUTH_LOGIN_WINDOW_SECONDS`, `AUTH_SIGNUP_IP_LIMIT` | Sign-in and sign-up limits — defaults are sensible |
 | `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | Only for the inbound WhatsApp webhook |
 
 WhatsApp, Slack, HubSpot and Shopify credentials are **not** environment variables: each business pastes its own on the Connect screen. A tool without its credential returns a clean *"not connected yet"* instead of failing.
@@ -299,7 +306,8 @@ This is an **MVP that has not been deployed**, and the repo is deliberately cand
 - **Google's consent flow needs your own Google Cloud client**, and stays in "unverified app" mode until Google verifies it.
 - **Packs are prompts, not products.** No billing or checkout; safety-critical wording hasn't been reviewed by industry experts.
 - **Free AI tier is too small for production** — see above.
-- **Approval notifications log to the console** until an email provider key is set.
+- **No email provider is set up yet.** Password reset is built and tested, but until `SMTP_*` is configured nobody can receive a reset link in production. Approval notifications and member invitations don't use the mailer yet either (approval alerts still log to the console).
+- **Accounts are basic:** no email verification, no two-factor sign-in, and no "change password" while signed in (reset by email only).
 - **Gaps in reach:** no telephony; Google Calendar only, no practice-management-system integration; no Microsoft 365 or LinkedIn; no automated tests for the website widget's JavaScript.
 - **Leftovers:** the unused scripted-chat code is still in the tree, and the screenshots above show the old name.
 

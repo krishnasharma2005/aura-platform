@@ -22,7 +22,7 @@ export default function ActivityPage() {
       setEntries(data);
     } catch (err) {
       setError(
-        errorMessage(err, "Couldn't load your activity feed right now.")
+        errorMessage(err, "We couldn't load Activity. Your work is saved. Try again.")
       );
     } finally {
       setIsLoading(false);
@@ -77,7 +77,7 @@ export default function ActivityPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading activity…</p>
+            <p className="text-sm text-muted-foreground">Collecting recent activity…</p>
           ) : error ? (
             <p className="text-sm text-destructive-ink">{error}</p>
           ) : entries.length === 0 ? (

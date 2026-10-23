@@ -55,7 +55,7 @@ export default function KnowledgePage() {
       setDocuments(docs);
     } catch (err) {
       setLoadError(
-        errorMessage(err, "Couldn't load your documents right now.")
+        errorMessage(err, "We couldn't load your documents. Your work is saved. Try again.")
       );
     } finally {
       setIsLoadingDocs(false);
@@ -178,7 +178,7 @@ export default function KnowledgePage() {
         </CardHeader>
         <CardContent>
           {isLoadingDocs ? (
-            <p className="text-sm text-muted-foreground">Loading documents…</p>
+            <p className="text-sm text-muted-foreground">Opening your documents…</p>
           ) : loadError ? (
             <p className="text-sm text-destructive-ink">{loadError}</p>
           ) : documents.length === 0 ? (

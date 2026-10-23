@@ -1,50 +1,45 @@
-import type { Transition, Variants } from "framer-motion";
+import type { Variants } from "framer-motion";
 
 /**
- * One motion vocabulary for the whole product.
+ * One motion vocabulary for the whole product, from the brandbook (p. 17-18).
  *
- * Everything here simulates mass. Nothing uses `linear` or a bare ease, and
- * nothing animates a layout-triggering property — only transform and opacity,
- * so the compositor does the work and we hold frame rate on a laptop.
+ * Four tempos: respond 160ms (a control answering a touch), reveal 240ms
+ * (something appearing), resolve 480ms (a state settling), introduce 640ms (a
+ * whole view arriving). One curve for entrances; progress is linear. No bounce,
+ * overshoot, springs or elastic scaling, and nothing loops.
  *
- * Motion here is orientation, not decoration: entrances tell you where a thing
- * came from, and state changes tell you that something real happened.
+ * Only transform and opacity animate, so the compositor does the work. Motion
+ * is orientation, not decoration: entrances show where a thing came from.
+ * Reduced motion keeps the same end state without the travel.
  */
 
-/** The house curve. Heavy start, long settle. */
-export const EASE_PHYSICAL = [0.32, 0.72, 0, 1] as const;
-/** Softer landing, for things arriving rather than responding. */
-export const EASE_SETTLE = [0.16, 1, 0.3, 1] as const;
+export const DURATION = {
+  respond: 0.16,
+  reveal: 0.24,
+  resolve: 0.48,
+  introduce: 0.64,
+} as const;
 
-export const springSoft: Transition = {
-  type: "spring",
-  stiffness: 320,
-  damping: 34,
-  mass: 0.9,
-};
+/** The entrance curve. */
+export const EASE_BRAND = [0.22, 1, 0.36, 1] as const;
 
-export const springSnappy: Transition = {
-  type: "spring",
-  stiffness: 520,
-  damping: 38,
-  mass: 0.7,
-};
+/** A tween with the house curve; the only transition shape components should use. */
+export function tween(duration: number = DURATION.reveal) {
+  return { duration, ease: EASE_BRAND } as const;
+}
 
-/**
- * Page and section entrance. Content rises a short distance — enough to read
- * as "this just arrived", not enough to feel like a slideshow.
- */
+/** Page and section entrance: a short rise, as a view is introduced. */
 export const riseIn: Variants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: EASE_SETTLE },
+    transition: tween(DURATION.resolve),
   },
 };
 
 /** Parent for staggered lists and grids. */
-export function stagger(staggerChildren = 0.045, delayChildren = 0.02): Variants {
+export function stagger(staggerChildren = 0.04, delayChildren = 0.02): Variants {
   return {
     hidden: {},
     visible: { transition: { staggerChildren, delayChildren } },
@@ -53,20 +48,15 @@ export function stagger(staggerChildren = 0.045, delayChildren = 0.02): Variants
 
 /** A message or row arriving in a feed. */
 export const messageIn: Variants = {
-  hidden: { opacity: 0, y: 12, scale: 0.985 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: springSoft,
-  },
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: tween(DURATION.reveal) },
 };
 
 /** Chips and badges that appear mid-flow (tool calls, statuses). */
 export const chipIn: Variants = {
-  hidden: { opacity: 0, scale: 0.9, y: 4 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: springSnappy },
-  exit: { opacity: 0, scale: 0.94, transition: { duration: 0.14 } },
+  hidden: { opacity: 0, y: 4 },
+  visible: { opacity: 1, y: 0, transition: tween(DURATION.reveal) },
+  exit: { opacity: 0, transition: tween(DURATION.respond) },
 };
 
 /**

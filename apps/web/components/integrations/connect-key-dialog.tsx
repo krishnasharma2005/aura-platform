@@ -85,7 +85,7 @@ export function ConnectKeyDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground">
-              <Icon className="h-4 w-4" strokeWidth={1.75} />
+              <Icon className="h-4 w-4" strokeWidth={1.5} />
             </span>
             Connect {definition.displayName}
           </DialogTitle>
@@ -123,7 +123,7 @@ export function ConnectKeyDialog({
           )}
 
           <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-            <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.75} />
+            <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.5} />
             We check it works before saving it, store it encrypted, and never show it again. You can disconnect any
             time.
           </p>

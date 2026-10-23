@@ -123,7 +123,7 @@ export default function AnalyticsPage() {
           <CardContent className="px-6 py-10 text-center">
             <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">{error}</p>
             <Button variant="secondary" className="mt-5" onClick={() => load(days)}>
-              <RefreshCw className="h-4 w-4" strokeWidth={1.75} />
+              <RefreshCw className="h-4 w-4" strokeWidth={1.5} />
               Try again
             </Button>
           </CardContent>
@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
       ) : summary && revenue ? (
         <div
           className={cn(
-            "flex flex-col gap-5 transition-opacity duration-200",
+            "flex flex-col gap-5 transition-opacity duration-respond",
             isRefetching && "pointer-events-none opacity-60"
           )}
         >
@@ -181,7 +181,7 @@ export default function AnalyticsPage() {
                     </p>
                     {revenue.isEstimate && (
                       <p className="mt-3 flex max-w-2xl items-start gap-2 text-xs leading-relaxed text-subtle">
-                        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+                        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.5} />
                         <span>
                           An estimate — {revenue.bookings.toLocaleString()}{" "}
                           {revenue.bookings === 1 ? "appointment" : "appointments"} at an average
@@ -206,7 +206,7 @@ export default function AnalyticsPage() {
                       className="press mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary-ink hover:underline"
                     >
                       Connect an account
-                      <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+                      <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.5} />
                     </Link>
                   </>
                 )}
@@ -231,7 +231,7 @@ export default function AnalyticsPage() {
               note="Calls answered, texts and emails written."
             />
             <StatTile
-              label="Waiting on you"
+              label="Needs your attention"
               value={summary.approvals_pending.toLocaleString()}
               note={
                 summary.approvals_pending > 0
@@ -323,7 +323,7 @@ function AgentBreakdown({ summary }: { summary: AnalyticsSummary }) {
           </div>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-primary/[0.08]">
             <div
-              className="h-full rounded-full bg-primary transition-[width] duration-500 ease-physical"
+              className="h-full rounded-full bg-primary transition-[width] duration-resolve ease-physical"
               style={{ width: `${Math.max((row.conversations / max) * 100, row.conversations > 0 ? 3 : 0)}%` }}
             />
           </div>

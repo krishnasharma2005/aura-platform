@@ -7,8 +7,10 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   BarChart3,
   BookOpen,
+  Inbox,
+  LayoutDashboard,
   ListChecks,
-  MessagesSquare,
+  Plug,
   Repeat,
   Settings,
   ShieldCheck,
@@ -17,16 +19,39 @@ import {
 import { AGENTS } from "@/lib/agents";
 import { MesniumLogo } from "@/components/brand/mesnium-logo";
 import { cn } from "@/lib/utils";
+import { DURATION, tween } from "@/lib/motion";
 
-const WORKSPACE_LINKS = [
-  // Results first: it is the answer to "was this worth it", and it should be
-  // the first thing in reach every time the owner opens the product.
-  { href: "/analytics", label: "Results", icon: BarChart3 },
-  { href: "/conversations", label: "Conversations", icon: MessagesSquare },
-  { href: "/workflows", label: "Workflows", icon: Repeat },
-  { href: "/knowledge", label: "Knowledge", icon: BookOpen },
-  { href: "/activity", label: "Activity", icon: ListChecks },
-  { href: "/settings", label: "Settings", icon: Settings },
+/**
+ * The brandbook's vocabulary: Chat (the agents above), Work, Automations,
+ * Knowledge, Inbox, Connections, Activity. The URLs keep their original paths
+ * so links and sign-in redirects stay valid; only the words changed.
+ */
+interface WorkspaceLink {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  isActive: (pathname: string) => boolean;
+}
+
+const startsWithPath = (href: string) => (pathname: string) =>
+  pathname === href || pathname.startsWith(`${href}/`);
+
+const WORKSPACE_LINKS: WorkspaceLink[] = [
+  { href: "/", label: "Work", icon: LayoutDashboard, isActive: (p) => p === "/" },
+  // Results sits near the top: it is the answer to "was this worth it".
+  { href: "/analytics", label: "Results", icon: BarChart3, isActive: startsWithPath("/analytics") },
+  { href: "/conversations", label: "Inbox", icon: Inbox, isActive: startsWithPath("/conversations") },
+  { href: "/workflows", label: "Automations", icon: Repeat, isActive: startsWithPath("/workflows") },
+  { href: "/knowledge", label: "Knowledge", icon: BookOpen, isActive: startsWithPath("/knowledge") },
+  { href: "/settings/integrations", label: "Connections", icon: Plug, isActive: startsWithPath("/settings/integrations") },
+  { href: "/activity", label: "Activity", icon: ListChecks, isActive: startsWithPath("/activity") },
+  {
+    href: "/settings",
+    label: "Settings",
+    icon: Settings,
+    // Connections lives under /settings but has its own row.
+    isActive: (p) => startsWithPath("/settings")(p) && !startsWithPath("/settings/integrations")(p),
+  },
 ];
 
 /**
@@ -71,8 +96,8 @@ function NavRow({
         {active && (
           <motion.span
             layoutId={reduce ? undefined : layoutId}
-            className="absolute inset-0 rounded-md bg-sidebar-active shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.05)]"
-            transition={{ type: "spring", stiffness: 480, damping: 40 }}
+            className="absolute inset-0 rounded-md bg-sidebar-active"
+            transition={tween(DURATION.reveal)}
           />
         )}
         {active && (
@@ -80,10 +105,9 @@ function NavRow({
         )}
         <Icon
           className={cn(
-            "relative h-4 w-4 shrink-0 transition-transform duration-200 ease-physical",
-            !active && "group-hover:translate-x-0.5"
+            "relative h-4 w-4 shrink-0"
           )}
-          strokeWidth={1.75}
+          strokeWidth={1.5}
         />
         <span className="relative truncate">{label}</span>
       </Link>
@@ -104,7 +128,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="flex-1 overflow-y-auto px-3 pb-4 scrollbar-thin">
         <p className="px-2.5 pb-2 pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">
-          Agents
+          Chat
         </p>
         <ul className="flex flex-col gap-0.5">
           {AGENTS.map((agent) => (
@@ -130,7 +154,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               href={link.href}
               label={link.label}
               icon={link.icon}
-              active={pathname === link.href || pathname.startsWith(`${link.href}/`)}
+              active={link.isActive(pathname)}
               onNavigate={onNavigate}
               layoutId="sidebar-active"
             />
@@ -150,8 +174,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           className="press group flex items-start gap-2 text-xs leading-relaxed text-sidebar-muted hover:text-sidebar-foreground"
         >
           <ShieldCheck
-            className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink/80 transition-transform duration-200 ease-physical group-hover:scale-110"
-            strokeWidth={1.75}
+            className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink/80"
+            strokeWidth={1.5}
           />
           <span>
             Every action your agents take is logged in{" "}

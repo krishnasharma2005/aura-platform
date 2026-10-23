@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { DURATION, tween } from "@/lib/motion";
 import { ShieldCheck } from "lucide-react";
 import { useApprovals } from "@/lib/approvals-context";
 import { ApprovalCard } from "./approval-card";
@@ -43,15 +44,15 @@ export function ApprovalsTray() {
               : "Approvals — nothing waiting"
           }
         >
-          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.9} />
+          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.5} />
           <span className="hidden sm:inline">Approvals</span>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
               key={count}
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.8 }}
-              animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.8 }}
-              transition={{ type: "spring", stiffness: 520, damping: 32 }}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: -4 }}
+              animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, y: 4 }}
+              transition={tween(DURATION.respond)}
               className={cn(
                 "flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
                 count > 0 ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
@@ -66,7 +67,7 @@ export function ApprovalsTray() {
       <SheetContent side="right" className="flex flex-col gap-0 p-0">
         <SheetHeader className="border-b border-border px-5 py-4">
           <SheetTitle className="font-display text-lg font-semibold tracking-[-0.015em]">
-            Waiting on you
+            Needs your attention
           </SheetTitle>
           <SheetDescription>
             Your agents pause before anything that affects a customer, a booking, or your inbox.
@@ -83,7 +84,7 @@ export function ApprovalsTray() {
           ) : count === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-5 py-10 text-center">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success-ink">
-                <ShieldCheck className="h-5 w-5" strokeWidth={1.75} />
+                <ShieldCheck className="h-5 w-5" strokeWidth={1.5} />
               </span>
               <p className="text-sm font-semibold text-foreground">Nothing needs you</p>
               <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">

@@ -48,7 +48,7 @@ export default function ConversationDetailPage() {
       setTurns(transcript);
       setSummary(list.find((c) => c.id === conversationId) ?? null);
     } catch (err) {
-      setError(errorMessage(err, "Couldn't load this conversation right now."));
+      setError(errorMessage(err, "We couldn't open this thread. Your work is saved. Try again."));
     } finally {
       setIsLoading(false);
     }
@@ -107,8 +107,8 @@ export default function ConversationDetailPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 px-6 py-8">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/conversations")} aria-label="Back to conversations">
-          <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+        <Button variant="ghost" size="icon" onClick={() => router.push("/conversations")} aria-label="Back to inbox">
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
         </Button>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-lg font-medium text-foreground">
@@ -122,11 +122,11 @@ export default function ConversationDetailPage() {
         </div>
         {isHumanControlled ? (
           <Badge variant="warning">
-            <UserRound className="h-3 w-3" strokeWidth={2} /> You&rsquo;re handling this
+            <UserRound className="h-3 w-3" strokeWidth={1.5} /> You&rsquo;re handling this
           </Badge>
         ) : (
           <Badge variant="secondary">
-            <ShieldCheck className="h-3 w-3" strokeWidth={2} /> Agent is answering
+            <ShieldCheck className="h-3 w-3" strokeWidth={1.5} /> Agent is answering
           </Badge>
         )}
       </div>
@@ -139,7 +139,7 @@ export default function ConversationDetailPage() {
 
       <Card className="flex flex-col gap-3 p-4">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">Opening this thread…</p>
         ) : turns.length === 0 ? (
           <p className="text-sm text-muted-foreground">No messages yet.</p>
         ) : (
@@ -174,7 +174,7 @@ export default function ConversationDetailPage() {
                 }}
               />
               <Button type="submit" disabled={isBusy || !draft.trim()} aria-label="Send message">
-                <Send className="h-4 w-4" strokeWidth={1.75} />
+                <Send className="h-4 w-4" strokeWidth={1.5} />
               </Button>
             </form>
             <Button variant="outline" onClick={handleHandback} disabled={isBusy} className="self-start">

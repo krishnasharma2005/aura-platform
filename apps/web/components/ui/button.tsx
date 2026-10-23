@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * Buttons are matte: flat fills and hairlines, no bevel and no glow (brandbook:
  * "no gradients, no glow"). Crimson is the one deliberate signal, so only the
- * primary action carries it. Every variant takes a small press.
+ * primary action carries it. Colour answers the pointer within 160ms; nothing scales or moves.
  */
 const buttonVariants = cva(
   [
@@ -16,10 +16,9 @@ const buttonVariants = cva(
     // A 32px `sm` button is fine under a cursor and too small under a thumb.
     // `tap-h` only applies on coarse pointers and phone widths.
     "tap-h",
-    "transition-[transform,box-shadow,background-color,border-color,color] duration-200 ease-physical",
+    "transition-[background-color,border-color,color] duration-respond ease-brand",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     "disabled:pointer-events-none disabled:opacity-45",
-    "active:scale-[0.975]",
   ].join(" "),
   {
     variants: {
@@ -83,11 +82,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
-          <Loader2 className="absolute h-4 w-4 animate-spin" aria-hidden="true" strokeWidth={2} />
+          <Loader2 className="absolute h-4 w-4 animate-spin" aria-hidden="true" strokeWidth={1.5} />
         )}
         <span
           className={cn(
-            "inline-flex items-center gap-2 transition-opacity duration-200",
+            "inline-flex items-center gap-2 transition-opacity duration-respond",
             loading && "opacity-0"
           )}
         >

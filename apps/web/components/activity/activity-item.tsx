@@ -16,7 +16,7 @@ export function ActivityItem({ entry }: { entry: AuditLogEntry }) {
   return (
     <li className="flex gap-3 py-3.5">
       <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary-ink">
-        {Icon ? <Icon className="h-4 w-4" strokeWidth={1.75} /> : null}
+        {Icon ? <Icon className="h-4 w-4" strokeWidth={1.5} /> : null}
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-foreground">{describe(entry)}</p>

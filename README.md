@@ -15,7 +15,6 @@ A multi-tenant **AI business operating system** for small businesses:<br/>clinic
 ![Next.js](https://img.shields.io/badge/Next.js-14-16211f?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![Postgres](https://img.shields.io/badge/PostgreSQL-pgvector-1d6b5f?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-hot_path-a8721f?style=for-the-badge&logo=redis&logoColor=white)
-![Three.js](https://img.shields.io/badge/Three.js-3D_runtime-16211f?style=for-the-badge&logo=threedotjs&logoColor=white)
 
 <br/>
 
@@ -32,9 +31,9 @@ A multi-tenant **AI business operating system** for small businesses:<br/>clinic
 
 <br/>
 
-<img src="docs/images/signin.png" alt="Sign-in screen — a split layout explaining that six agents share one core, one memory and one set of connected accounts" width="100%"/>
+<img src="docs/images/signin.png" alt="Sign-in screen (previous design)" width="100%"/>
 
-<sub>The screenshots in this README predate the rename and still show the old product name, AURA.</sub>
+<sub>The screenshots in this README predate the rename and the rebrand: they show the old name, AURA, and the old teal look. The product now follows the Mesnium brandbook (see <code>docs/brand/</code>); the screens in the app are the source of truth until these are retaken.</sub>
 
 </div>
 

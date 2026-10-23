@@ -2,9 +2,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * The base raised surface. `interactive` adds the hover lift used by anything
- * that navigates — the card rises a hair and its ambient shadow spreads,
- * which is what makes a flat light theme read as having depth.
+ * The base surface: a hairline on the ground, no shadow. `interactive` is for
+ * anything that navigates; it answers the pointer with a quieter-to-stronger
+ * border, not movement.
  */
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -15,7 +15,7 @@ const Card = React.forwardRef<
     className={cn(
       "rounded-lg border border-border bg-card text-card-foreground shadow-card",
       interactive &&
-        "press cursor-pointer hover:-translate-y-0.5 hover:border-foreground/12 hover:shadow-lifted active:translate-y-0",
+        "press cursor-pointer hover:border-foreground/25",
       className
     )}
     {...props}
@@ -34,12 +34,12 @@ const CardShell = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
     <div
       ref={ref}
       className={cn(
-        "rounded-2xl border border-border/70 bg-foreground/[0.035] p-1.5 shadow-panel",
+        "rounded-2xl border border-border/70 bg-foreground/[0.035] p-2 shadow-panel",
         className
       )}
       {...props}
     >
-      <div className="rounded-xl border border-border/60 bg-card shadow-subtle">{children}</div>
+      <div className="rounded-lg border border-border/60 bg-card">{children}</div>
     </div>
   )
 );

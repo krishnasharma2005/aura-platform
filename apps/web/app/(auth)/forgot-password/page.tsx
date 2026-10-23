@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <span className="mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary-ink">
-            <MailCheck className="h-5 w-5" strokeWidth={1.75} />
+            <MailCheck className="h-5 w-5" strokeWidth={1.5} />
           </span>
           <CardTitle>Check your email</CardTitle>
           <CardDescription>

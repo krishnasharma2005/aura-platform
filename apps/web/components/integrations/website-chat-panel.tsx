@@ -113,7 +113,7 @@ export function WebsiteChatPanel() {
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-foreground">
-              <Globe className="h-5 w-5" strokeWidth={1.75} />
+              <Globe className="h-5 w-5" strokeWidth={1.5} />
             </span>
             <div>
               <CardTitle className="text-base">Add chat to your website</CardTitle>
@@ -157,7 +157,7 @@ export function WebsiteChatPanel() {
                   <code>{scriptTagFor(publicId)}</code>
                 </pre>
                 <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy code">
-                  {copied ? <Check className="h-4 w-4" strokeWidth={1.75} /> : <Copy className="h-4 w-4" strokeWidth={1.75} />}
+                  {copied ? <Check className="h-4 w-4" strokeWidth={1.5} /> : <Copy className="h-4 w-4" strokeWidth={1.5} />}
                 </Button>
               </div>
             </div>
@@ -180,7 +180,7 @@ export function WebsiteChatPanel() {
                 Think someone&rsquo;s misusing your chat link? Get a new code — the old one stops working immediately.
               </p>
               <Button variant="ghost" size="sm" onClick={handleGetNewCode} disabled={isBusy}>
-                <RefreshCcw className="h-3.5 w-3.5" strokeWidth={1.75} /> Get a new code
+                <RefreshCcw className="h-3.5 w-3.5" strokeWidth={1.5} /> Get a new code
               </Button>
             </div>
           </div>

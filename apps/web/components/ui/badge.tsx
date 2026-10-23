@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * state it names is true right now.
  */
 const badgeVariants = cva(
-  "inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-2xs font-semibold leading-5 transition-colors duration-200",
+  "inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-2xs font-semibold leading-5 transition-colors duration-respond",
   {
     variants: {
       variant: {

@@ -74,11 +74,11 @@ export function ToolCallChip({ toolCall }: { toolCall: ToolCall }) {
       )}
     >
       {status === "pending" ? (
-        <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2.25} />
+        <Loader2 className="h-3 w-3 animate-spin" strokeWidth={1.5} />
       ) : status === "error" ? (
-        <XCircle className="h-3 w-3" strokeWidth={2.25} />
+        <XCircle className="h-3 w-3" strokeWidth={1.5} />
       ) : (
-        <Icon className="h-3 w-3" strokeWidth={2} />
+        <Icon className="h-3 w-3" strokeWidth={1.5} />
       )}
       <span className="capitalize">{text}</span>
       {status === "success" && <Check className="h-3 w-3 text-success-ink" strokeWidth={2.75} />}

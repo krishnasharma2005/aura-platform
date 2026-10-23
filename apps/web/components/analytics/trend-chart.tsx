@@ -126,11 +126,11 @@ export function TrendChart({
         >
           {showTable ? (
             <>
-              <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.75} /> Show chart
+              <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.5} /> Show chart
             </>
           ) : (
             <>
-              <Table2 className="h-3.5 w-3.5" strokeWidth={1.75} /> Show numbers
+              <Table2 className="h-3.5 w-3.5" strokeWidth={1.5} /> Show numbers
             </>
           )}
         </button>
@@ -223,7 +223,7 @@ export function TrendChart({
                         d={columnPath(barX, barY, barWidth, h)}
                         fill="hsl(var(--primary))"
                         opacity={activeIndex === null || isActive ? 1 : 0.55}
-                        className="transition-opacity duration-150"
+                        className="transition-opacity duration-respond"
                       />
                     )}
 

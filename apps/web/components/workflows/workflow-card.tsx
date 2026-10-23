@@ -32,14 +32,14 @@ import { useToast } from "@/components/ui/use-toast";
 
 function StepIcon({ status }: { status: WorkflowStep["status"] }) {
   if (status === "failed") {
-    return <X className="h-3 w-3 text-destructive-ink" strokeWidth={2.5} aria-hidden="true" />;
+    return <X className="h-3 w-3 text-destructive-ink" strokeWidth={1.5} aria-hidden="true" />;
   }
   if (status === "running") {
     return (
-      <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" strokeWidth={2.5} aria-hidden="true" />
+      <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" strokeWidth={1.5} aria-hidden="true" />
     );
   }
-  return <Check className="h-3 w-3 text-success-ink" strokeWidth={2.5} aria-hidden="true" />;
+  return <Check className="h-3 w-3 text-success-ink" strokeWidth={1.5} aria-hidden="true" />;
 }
 
 /** "pack_dental" -> "Dental pack". */
@@ -72,11 +72,11 @@ function RunRow({ run }: { run: WorkflowRun }) {
           )}
         >
           {run.status === "failed" ? (
-            <AlertCircle className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+            <AlertCircle className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
           ) : run.status === "running" ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} aria-hidden="true" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.5} aria-hidden="true" />
           ) : (
-            <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
+            <Check className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
           )}
           {runStatusLabel(run.status)}
         </span>
@@ -248,7 +248,7 @@ export function WorkflowCard({
             {workflow.description}
           </p>
           <p className="mt-2.5 flex items-center gap-1.5 text-xs text-subtle">
-            <Clock3 className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+            <Clock3 className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} aria-hidden="true" />
             {triggerSentence(workflow.trigger)}
             {workflow.pack_id && (
               <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-semibold text-primary-ink">
@@ -299,7 +299,7 @@ export function WorkflowCard({
           aria-expanded={testOpen}
           className="tap-h press inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-primary-ink hover:underline"
         >
-          <Play className="h-3 w-3" strokeWidth={2.25} aria-hidden="true" />
+          <Play className="h-3 w-3" strokeWidth={1.5} aria-hidden="true" />
           Run a test
         </button>
         {hasRun && (
@@ -312,8 +312,8 @@ export function WorkflowCard({
           >
             {isOpen ? "Hide history" : "See what it did"}
             <ChevronDown
-              className={cn("h-3.5 w-3.5 transition-transform duration-200 ease-physical", isOpen && "rotate-180")}
-              strokeWidth={2}
+              className={cn("h-3.5 w-3.5 transition-transform duration-respond ease-physical", isOpen && "rotate-180")}
+              strokeWidth={1.5}
               aria-hidden="true"
             />
           </button>
@@ -338,7 +338,7 @@ export function WorkflowCard({
           )}
           <div className="flex flex-wrap items-center gap-3">
             <Button size="sm" onClick={runTest} loading={isTesting} disabled={isTesting}>
-              <Play className="h-3.5 w-3.5" strokeWidth={2.25} />
+              <Play className="h-3.5 w-3.5" strokeWidth={1.5} />
               Run it now
             </Button>
             <p className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">

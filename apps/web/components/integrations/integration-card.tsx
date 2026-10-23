@@ -40,7 +40,7 @@ export function IntegrationCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-foreground">
-              <Icon className="h-5 w-5" strokeWidth={1.75} />
+              <Icon className="h-5 w-5" strokeWidth={1.5} />
             </span>
             <div>
               <CardTitle className="text-base">{definition.displayName}</CardTitle>

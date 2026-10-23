@@ -22,8 +22,8 @@ import {
 const SECTION_LABELS: Record<string, string> = {
   // The route is /analytics; the word the owner sees is "Results".
   analytics: "Results",
-  conversations: "Conversations",
-  workflows: "Workflows",
+  conversations: "Inbox",
+  workflows: "Automations",
   knowledge: "Knowledge",
   activity: "Activity",
   settings: "Settings",
@@ -33,7 +33,8 @@ const SECTION_LABELS: Record<string, string> = {
 function useCurrentSection(): string | null {
   const pathname = usePathname();
   const first = pathname.split("/").filter(Boolean)[0];
-  if (!first) return null;
+  if (!first) return "Work";
+  if (pathname.startsWith("/settings/integrations")) return "Connections";
   return getAgentBySlug(first)?.displayName ?? SECTION_LABELS[first] ?? null;
 }
 
@@ -51,7 +52,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           onClick={onMenuClick}
           aria-label="Open menu"
         >
-          <Menu className="h-5 w-5" strokeWidth={1.75} />
+          <Menu className="h-5 w-5" strokeWidth={1.5} />
         </Button>
 
         <DropdownMenu>
@@ -107,12 +108,12 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/settings" className="flex items-center gap-2">
-              <UserRound className="h-4 w-4" strokeWidth={1.75} /> Account
+              <UserRound className="h-4 w-4" strokeWidth={1.5} /> Account
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/settings/integrations" className="flex items-center gap-2">
-              <Plug className="h-4 w-4" strokeWidth={1.75} /> Connections
+              <Plug className="h-4 w-4" strokeWidth={1.5} /> Connections
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -120,7 +121,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             onClick={logout}
             className="flex items-center gap-2 text-destructive-ink focus:text-destructive-ink"
           >
-            <LogOut className="h-4 w-4" strokeWidth={1.75} /> Sign out
+            <LogOut className="h-4 w-4" strokeWidth={1.5} /> Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>
         </DropdownMenu>

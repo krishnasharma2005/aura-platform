@@ -25,7 +25,7 @@ export default function PacksSettingsPage() {
       const data = await api.packs.list(organization.id);
       setPacks(data);
     } catch (err) {
-      setError(errorMessage(err, "Couldn't load your packs right now."));
+      setError(errorMessage(err, "We couldn't load your packs. Your work is saved. Try again."));
     } finally {
       setIsLoading(false);
     }

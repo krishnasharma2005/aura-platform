@@ -26,7 +26,7 @@ export default function ConversationsPage() {
     try {
       setConversations(await api.conversations.list());
     } catch (err) {
-      setError(errorMessage(err, "Couldn't load your conversations right now."));
+      setError(errorMessage(err, "We couldn't load your inbox. Your work is saved. Try again."));
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +39,7 @@ export default function ConversationsPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-medium text-foreground">Conversations</h1>
+        <h1 className="font-display text-2xl font-medium text-foreground">Inbox</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Every thread your agents have had with a customer. Open one to read it, or take over and reply
           yourself.
@@ -48,18 +48,18 @@ export default function ConversationsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent conversations</CardTitle>
+          <CardTitle className="text-base">Recent threads</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading conversations…</p>
+            <p className="text-sm text-muted-foreground">Opening your inbox…</p>
           ) : error ? (
             <p className="text-sm text-destructive-ink">{error}</p>
           ) : conversations.length === 0 ? (
             <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
               <MessagesSquare className="mx-auto h-6 w-6 text-subtle" strokeWidth={1.5} />
               <p className="mt-3 text-sm text-muted-foreground">
-                Nothing yet. Once a customer messages one of your agents, the thread shows up here.
+                No work here yet. When a customer messages one of your agents, the thread appears here.
               </p>
             </div>
           ) : (
@@ -71,7 +71,7 @@ export default function ConversationsPage() {
                     className="press tap-h flex items-start gap-3 rounded-md py-3.5 hover:bg-secondary/50"
                   >
                     <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary-ink">
-                      <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
+                      <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -81,7 +81,7 @@ export default function ConversationsPage() {
                         <Badge variant="outline">{CHANNEL_LABELS[conversation.channel] ?? conversation.channel}</Badge>
                         {conversation.mode === "human" && (
                           <Badge variant="warning">
-                            <UserRound className="h-3 w-3" strokeWidth={2} /> You&rsquo;re handling this
+                            <UserRound className="h-3 w-3" strokeWidth={1.5} /> You&rsquo;re handling this
                           </Badge>
                         )}
                       </div>

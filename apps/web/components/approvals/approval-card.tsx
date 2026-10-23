@@ -105,9 +105,9 @@ export function ApprovalCard({
     >
       {/* A calm signal band, not a warning stripe. */}
       <div className="flex items-center gap-2 border-b border-primary/15 bg-primary/[0.055] px-3.5 py-2">
-        <ShieldQuestion className="h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.9} />
+        <ShieldQuestion className="h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.5} />
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary-ink">
-          Needs your OK
+          Your approval is needed
         </span>
       </div>
 
@@ -137,7 +137,7 @@ export function ApprovalCard({
             loading={busy === "approve"}
             disabled={busy !== null}
           >
-            <Check className="h-3.5 w-3.5" strokeWidth={2.25} />
+            <Check className="h-3.5 w-3.5" strokeWidth={1.5} />
             Approve
           </Button>
           <Button
@@ -147,7 +147,7 @@ export function ApprovalCard({
             loading={busy === "reject"}
             disabled={busy !== null}
           >
-            <X className="h-3.5 w-3.5" strokeWidth={2.25} />
+            <X className="h-3.5 w-3.5" strokeWidth={1.5} />
             Decline
           </Button>
           <span className="text-xs text-muted-foreground">Nothing happens until you choose.</span>

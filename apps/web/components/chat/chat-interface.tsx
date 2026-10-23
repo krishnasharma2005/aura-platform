@@ -7,7 +7,7 @@ import type { AgentDefinition } from "@/lib/agents";
 import type { ChatMessage, ChatOption } from "@/lib/api-types";
 import { api } from "@/lib/api-client";
 import { useApprovals } from "@/lib/approvals-context";
-import { chipIn, stillVariants } from "@/lib/motion";
+import { DURATION, chipIn, stillVariants, tween } from "@/lib/motion";
 import { cn, errorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { MessageBubble } from "./message-bubble";
@@ -293,7 +293,7 @@ export function ChatInterface({ agent }: { agent: AgentDefinition }) {
               className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-destructive/25 bg-destructive/[0.07] px-3.5 py-3 text-sm text-destructive-ink"
             >
               <span className="flex min-w-0 items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.9} />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
                 <span className="min-w-0">{error}</span>
               </span>
               {lastAttempt && (
@@ -305,7 +305,7 @@ export function ChatInterface({ agent }: { agent: AgentDefinition }) {
                     sendMessage(lastAttempt);
                   }}
                 >
-                  <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
+                  <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Try again
                 </Button>
               )}
@@ -318,17 +318,17 @@ export function ChatInterface({ agent }: { agent: AgentDefinition }) {
       <AnimatePresence>
         {!atBottom && !isEmpty && (
           <motion.button
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.9 }}
-            animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 480, damping: 34 }}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            transition={tween(DURATION.reveal)}
             onClick={() => {
               setAtBottom(true);
               scrollToBottom();
             }}
             className="press absolute bottom-24 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-lifted"
           >
-            <ArrowDown className="h-3.5 w-3.5" strokeWidth={2.25} />
+            <ArrowDown className="h-3.5 w-3.5" strokeWidth={1.5} />
             Latest
           </motion.button>
         )}
@@ -346,7 +346,7 @@ export function ChatInterface({ agent }: { agent: AgentDefinition }) {
             The composer is a single nested enclosure rather than a box plus a
             detached button, so it reads as one instrument you type into.
           */}
-          <div className="flex items-end gap-2 rounded-xl border border-input bg-card p-1.5 shadow-inset transition-[border-color,box-shadow] duration-200 ease-physical focus-within:border-primary/45 focus-within:ring-2 focus-within:ring-ring/20">
+          <div className="flex items-end gap-2 rounded-xl border border-input bg-card p-1.5 shadow-inset transition-[border-color,box-shadow] duration-respond ease-physical focus-within:border-primary/45 focus-within:ring-2 focus-within:ring-ring/20">
             <textarea
               ref={textareaRef}
               value={input}
@@ -373,7 +373,7 @@ export function ChatInterface({ agent }: { agent: AgentDefinition }) {
               disabled={!input.trim() || isSending || menuActive}
               aria-label="Send message"
             >
-              <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+              <ArrowUp className="h-4 w-4" strokeWidth={1.5} />
             </Button>
           </div>
           <p className="mt-2 px-1 text-2xs text-muted-foreground">
@@ -410,7 +410,7 @@ function EmptyState({
       className="flex flex-col items-center gap-5 rounded-xl border border-dashed border-border bg-card/60 px-6 py-10 text-center"
     >
       <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] text-primary-ink ring-1 ring-inset ring-primary/15">
-        <Icon className="h-5 w-5" strokeWidth={1.75} />
+        <Icon className="h-5 w-5" strokeWidth={1.5} />
       </span>
       <div>
         <h3 className="font-display text-lg font-semibold tracking-[-0.015em] text-foreground">

@@ -25,9 +25,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mesnium — Your business, always on",
+  title: "Mesnium — Your business, coordinated",
   description:
-    "Mesnium runs the front desk, sales follow-up, marketing, admin, support, and store insights for your business — so nothing falls through the cracks.",
+    "Mesnium coordinates the front desk, sales follow-up, marketing, admin, support and store insights for your business, and asks before anything leaves it.",
 };
 
 // The product is dark-first: browser chrome follows the graphite product surface.

@@ -48,7 +48,7 @@ export default function IntegrationsSettingsPage() {
       setIntegrations(data);
     } catch (err) {
       setError(
-        errorMessage(err, "Couldn't load your integrations right now.")
+        errorMessage(err, "We couldn't load your connections. Your work is saved. Try again.")
       );
     } finally {
       setIsLoading(false);
@@ -68,7 +68,7 @@ export default function IntegrationsSettingsPage() {
     } else {
       toast({
         title: "Couldn't connect",
-        description: "Something went wrong connecting Google. Please try again.",
+        description: "We couldn't connect Google. Your work is saved. Try again.",
         variant: "destructive",
       });
     }
@@ -87,7 +87,7 @@ export default function IntegrationsSettingsPage() {
     } catch (err) {
       toast({
         title: "Couldn't disconnect",
-        description: errorMessage(err, "Something went wrong. Nothing was changed — please try again."),
+        description: errorMessage(err, "Nothing was changed. Try again."),
         variant: "destructive",
       });
     } finally {
@@ -119,7 +119,7 @@ export default function IntegrationsSettingsPage() {
       } else {
         toast({
           title: "Couldn't connect",
-          description: "Something went wrong on our end. Please try again shortly.",
+          description: "We couldn't connect. Your work is saved. Try again shortly.",
           variant: "destructive",
         });
       }
@@ -128,7 +128,7 @@ export default function IntegrationsSettingsPage() {
       toast({
         title: "Couldn't connect",
         description:
-          errorMessage(err, "Something went wrong. Please try again."),
+          errorMessage(err, "We couldn't connect. Your work is saved. Try again."),
         variant: "destructive",
       });
     } finally {

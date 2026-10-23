@@ -42,7 +42,7 @@ export default function MembersSettingsPage() {
       .members(organization.id)
       .then(setMembers)
       .catch((err) =>
-        setError(errorMessage(err, "Couldn't load your team right now."))
+        setError(errorMessage(err, "We couldn't load your team. Your work is saved. Try again."))
       )
       .finally(() => setIsLoading(false));
   }, [organization]);
@@ -100,7 +100,7 @@ export default function MembersSettingsPage() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading team…</p>
+          <p className="text-sm text-muted-foreground">Checking your team…</p>
         ) : error ? (
           <p className="text-sm text-destructive-ink">{error}</p>
         ) : members.length === 0 ? (

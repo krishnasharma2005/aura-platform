@@ -67,15 +67,15 @@ export function MessageBubble({
           className={cn(
             "rounded-lg px-3.5 py-2.5 text-sm leading-relaxed",
             isUser
-              ? "rounded-tr-sm bg-primary text-primary-foreground shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.14),0_2px_8px_-4px_hsl(var(--primary)/0.5)]"
-              : "rounded-tl-sm border border-border bg-card text-card-foreground shadow-subtle"
+              ? "rounded-tr-sm bg-primary text-primary-foreground"
+              : "rounded-tl-sm border border-border bg-card text-card-foreground"
           )}
         >
           <p className="whitespace-pre-wrap break-words">
             {message.content}
             {/* Typing cursor while the reply is still arriving. */}
             {!isUser && message.content === "" && (
-              <span className="inline-block h-4 w-[2px] translate-y-0.5 animate-breathe rounded-full bg-primary/60" />
+              <span className="inline-block h-4 w-[2px] translate-y-0.5 rounded-full bg-primary/60" />
             )}
           </p>
         </div>

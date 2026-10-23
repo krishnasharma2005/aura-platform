@@ -33,7 +33,7 @@ const sheetVariants = cva(
     "fixed z-50 gap-4 border-border bg-card p-6 shadow-panel",
     // Panels slide from the edge they belong to, at the house curve, so the
     // motion tells you where the panel lives.
-    "duration-300 ease-physical data-[state=open]:animate-in data-[state=closed]:animate-out",
+    "duration-reveal ease-physical data-[state=open]:animate-in data-[state=closed]:animate-out",
   ].join(" "),
   {
     variants: {

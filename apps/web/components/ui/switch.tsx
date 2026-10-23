@@ -50,16 +50,16 @@ export function Switch({
       <span
         aria-hidden="true"
         className={cn(
-          "flex h-6 w-11 items-center rounded-full border transition-colors duration-200 ease-physical",
+          "flex h-6 w-11 items-center rounded-full border transition-colors duration-respond ease-physical",
           checked
-            ? "border-primary bg-primary shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.18)]"
+            ? "border-primary bg-primary"
             : "border-input bg-secondary shadow-inset"
         )}
       >
         <span
           className={cn(
-            "block h-4 w-4 rounded-full bg-card shadow-[0_1px_2px_0_hsl(var(--foreground)/0.35)]",
-            "transition-transform duration-200 ease-physical",
+            "block h-4 w-4 rounded-full bg-card",
+            "transition-transform duration-respond ease-physical",
             checked ? "translate-x-[1.4rem]" : "translate-x-[0.175rem]"
           )}
         />

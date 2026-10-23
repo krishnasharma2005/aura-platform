@@ -3,18 +3,14 @@ import { cn } from "@/lib/utils";
 
 /**
  * Loading states that match the shape of what is coming, so the page does not
- * rearrange itself when data lands. A sweep, not a blink — a blinking box
- * reads as broken, a sweeping one reads as working.
- *
- * The sweep is a transform on a pseudo-layer, so it stays on the compositor.
+ * rearrange itself when data lands. Static on purpose: the brandbook allows no
+ * looping or decorative motion, so the shape alone says "this is coming".
  */
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-md bg-foreground/[0.055]",
-        "after:absolute after:inset-0 after:-translate-x-full after:animate-sweep",
-        "after:bg-gradient-to-r after:from-transparent after:via-foreground/[0.05] after:to-transparent",
+        "rounded-md bg-foreground/[0.07]",
         className
       )}
       aria-hidden="true"

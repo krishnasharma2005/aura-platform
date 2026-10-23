@@ -54,7 +54,7 @@ export default function WorkflowsPage() {
       setError(
         errorMessage(
           err,
-          "We couldn't load your workflows just now. Anything already switched on keeps running — this page just can't show it at the moment."
+          "We couldn't load your automations. Your work is saved, and anything already switched on keeps running. Try again."
         )
       );
     } finally {
@@ -77,7 +77,7 @@ export default function WorkflowsPage() {
   return (
     <PageBody width="medium">
       <PageHeader
-        title="Workflows"
+        title="Automations"
         description="Things your agents do on their own, without you asking. Switch any of them off and they stop immediately."
       />
 
@@ -87,7 +87,7 @@ export default function WorkflowsPage() {
             <WorkflowSkeleton key={i} />
           ))}
           <span className="sr-only" role="status">
-            Loading your workflows
+            Opening your automations
           </span>
         </div>
       ) : error && !workflows ? (
@@ -95,7 +95,7 @@ export default function WorkflowsPage() {
           <CardContent className="px-6 py-10 text-center">
             <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">{error}</p>
             <Button variant="secondary" className="mt-5" onClick={load}>
-              <RefreshCw className="h-4 w-4" strokeWidth={1.75} />
+              <RefreshCw className="h-4 w-4" strokeWidth={1.5} />
               Try again
             </Button>
           </CardContent>
@@ -104,19 +104,18 @@ export default function WorkflowsPage() {
         <Card>
           <CardContent className="px-6 py-12 text-center">
             <p className="font-display text-lg font-semibold text-foreground">
-              No workflows set up yet
+              No automations yet
             </p>
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-              Once your calendar and phone line are connected, we&rsquo;ll suggest a few to start
-              with — chasing no-shows, following up on missed calls, and reminding people the day
-              before a visit.
+              Connect your calendar and phone line and Mesnium will suggest a few to start with: chasing
+              no-shows, following up on missed calls, and reminding people the day before a visit.
             </p>
             <Link
               href="/settings/integrations"
               className="press mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary-ink hover:underline"
             >
-              Connect an account
-              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+              Open Connections
+              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.5} />
             </Link>
           </CardContent>
         </Card>

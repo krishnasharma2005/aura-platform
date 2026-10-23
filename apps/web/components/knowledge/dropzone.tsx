@@ -36,7 +36,7 @@ export function Dropzone({ onFiles, disabled }: { onFiles: (files: FileList) => 
       )}
     >
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary-ink">
-        <UploadCloud className="h-5 w-5" strokeWidth={1.75} />
+        <UploadCloud className="h-5 w-5" strokeWidth={1.5} />
       </span>
       <div>
         <p className="text-sm font-medium text-foreground">Drag a file here, or click to browse</p>

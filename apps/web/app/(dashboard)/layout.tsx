@@ -37,7 +37,7 @@ function WorkspaceSkeleton() {
         </div>
       </div>
       <span className="sr-only" role="status">
-        Loading your workspace
+        Opening your workspace
       </span>
     </div>
   );

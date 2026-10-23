@@ -80,13 +80,14 @@ const config: Config = {
           active: "hsl(var(--sidebar-active))",
         },
       },
-      // Shape lock: panels 16 · cards 12 · controls/inputs 10 · pills full.
+      // Brandbook radius scale: small controls 4 · cards 8 · app tiles 16 · pills full.
+      // `md` is the control size (buttons, inputs, chips), `lg`/`xl` the card size.
       borderRadius: {
-        sm: "0.375rem",
-        md: "0.625rem",
-        lg: "0.75rem",
-        xl: "1rem",
-        "2xl": "1.25rem",
+        sm: "4px",
+        md: "4px",
+        lg: "8px",
+        xl: "8px",
+        "2xl": "16px",
       },
       /**
        * Matte. Cards are separated by a hairline, not a shadow; elevation is
@@ -118,10 +119,19 @@ const config: Config = {
         "18": "4.5rem",
         "22": "5.5rem",
       },
+      // Brandbook motion (p. 17-18): four tempos and one entrance curve. No
+      // bounce, overshoot or springs. `physical`/`settle` are kept as aliases so
+      // existing classes resolve to the same brand curve.
+      transitionDuration: {
+        respond: "160ms",
+        reveal: "240ms",
+        resolve: "480ms",
+        introduce: "640ms",
+      },
       transitionTimingFunction: {
-        // Mass-and-spring feel. Never `linear`, never bare `ease-in-out`.
-        physical: "cubic-bezier(0.32, 0.72, 0, 1)",
-        settle: "cubic-bezier(0.16, 1, 0.3, 1)",
+        brand: "cubic-bezier(0.22, 1, 0.36, 1)",
+        physical: "cubic-bezier(0.22, 1, 0.36, 1)",
+        settle: "cubic-bezier(0.22, 1, 0.36, 1)",
       },
       keyframes: {
         "accordion-down": {
@@ -136,22 +146,11 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(4px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
-        // Skeletons sweep rather than blink — reads as loading, not broken.
-        sweep: {
-          "100%": { transform: "translateX(100%)" },
-        },
-        // The "working" pulse on a live tool call.
-        breathe: {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.45" },
-        },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s cubic-bezier(0.32, 0.72, 0, 1)",
-        "accordion-up": "accordion-up 0.2s cubic-bezier(0.32, 0.72, 0, 1)",
-        "fade-in": "fade-in 0.24s cubic-bezier(0.16, 1, 0.3, 1)",
-        sweep: "sweep 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        breathe: "breathe 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "accordion-down": "accordion-down 240ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "accordion-up": "accordion-up 240ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "fade-in": "fade-in 240ms cubic-bezier(0.22, 1, 0.36, 1)",
       },
     },
   },

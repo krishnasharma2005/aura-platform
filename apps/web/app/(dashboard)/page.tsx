@@ -2,33 +2,48 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, ListChecks, Users } from "lucide-react";
+import { ArrowRight, BookOpen, Plug } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useApprovals } from "@/lib/approvals-context";
 import { AGENTS } from "@/lib/agents";
 import { api } from "@/lib/api-client";
 import type { AuditLogEntry } from "@/lib/api-types";
 import { formatRelativeTime } from "@/lib/utils";
-import { RuntimeGraph } from "@/components/runtime/runtime-graph";
-import { CardShell } from "@/components/ui/card";
+import { ApprovalCard } from "@/components/approvals/approval-card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageBody, Reveal, RevealGroup, RevealItem } from "@/components/layout/page-shell";
-import { cn } from "@/lib/utils";
 
 /** An agent counts as "working" if it did something in the last 30 minutes. */
 const ACTIVE_WINDOW_MS = 30 * 60 * 1000;
+const RECENT_COUNT = 5;
+const ATTENTION_COUNT = 3;
 
+function greetingFor(date: Date): string {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+/**
+ * "Work": the home screen. It answers three questions in order: what needs me,
+ * what is happening, and what can I ask for. Everything on it comes from the
+ * real approvals queue and Activity feed; if either is unreachable the section
+ * simply stays quiet rather than inventing work that did not happen.
+ */
 export default function DashboardHomePage() {
   const { organization, user } = useAuth();
+  const { pending, count, canReview, isLoading: approvalsLoading } = useApprovals();
   const [entries, setEntries] = React.useState<AuditLogEntry[]>([]);
   const [activityLoaded, setActivityLoaded] = React.useState(false);
-  const [focusedSlug, setFocusedSlug] = React.useState<string | null>(null);
+  // Computed after mount so the server and client never disagree about the hour.
+  const [greeting, setGreeting] = React.useState("Welcome");
 
-  /**
-   * The graph's "working now" state is driven by the real Activity feed, not
-   * a timer — a lit node means that agent actually did something. If the feed
-   * is unreachable the graph simply shows no activity; it never breaks the
-   * page and never invents work that did not happen.
-   */
+  React.useEffect(() => {
+    setGreeting(greetingFor(new Date()));
+  }, []);
+
   React.useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -51,93 +66,92 @@ export default function DashboardHomePage() {
 
   const activeSlugs = React.useMemo(() => {
     const cutoff = Date.now() - ACTIVE_WINDOW_MS;
-    return Array.from(
-      new Set(
-        entries
-          .filter((e) => {
-            const t = new Date(e.created_at).getTime();
-            return !Number.isNaN(t) && t >= cutoff;
-          })
-          .map((e) => e.agent_slug)
-      )
+    return new Set(
+      entries
+        .filter((e) => {
+          const t = new Date(e.created_at).getTime();
+          return !Number.isNaN(t) && t >= cutoff;
+        })
+        .map((e) => e.agent_slug)
     );
   }, [entries]);
 
   const firstName = user?.full_name?.trim().split(/\s+/)[0];
-  const latest = entries[0];
+  const recent = entries.slice(0, RECENT_COUNT);
 
   return (
     <PageBody width="wide">
-      <Reveal className="mb-6">
+      <Reveal className="mb-8">
         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           {organization?.name ?? "Your workspace"}
         </p>
         <h1 className="mt-2 font-display text-4xl font-semibold tracking-[-0.03em] text-foreground">
-          Six agents.{" "}
-          <span className="text-primary-ink">One shared brain.</span>
+          {greeting}
+          {firstName ? `, ${firstName}.` : "."}
         </h1>
         <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          {firstName ? `${firstName}, everything ` : "Everything "}
-          your agents learn, read, and connect to is shared between them. Explore how they fit
-          together, or open one to try it.
+          Your business, coordinated. You stay in control.
         </p>
       </Reveal>
 
-      {/*
-        The signature surface. Nested enclosure — outer tray, inner plate — so
-        it reads as a piece of instrumentation seated on the page rather than
-        another card in the stack.
-      */}
-      <Reveal delay={0.06}>
-        <CardShell>
-          <div className="p-4 sm:p-5">
-            <RuntimeGraph
-              activeSlugs={activeSlugs}
-              focusedSlug={focusedSlug}
-              onFocusAgent={setFocusedSlug}
-            />
+      {/* The one deliberate signal on the page: the way in. */}
+      <Reveal delay={0.04}>
+        <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-semibold tracking-[-0.015em] text-foreground">
+              Tell Mesnium what needs doing
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              Not sure which agent to ask? Start with your Chief of Staff. It brings in the right specialist and
+              returns one clear answer.
+            </p>
           </div>
-        </CardShell>
+          <Button asChild className="shrink-0">
+            <Link href="/chief-of-staff">
+              Start a conversation
+              <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+            </Link>
+          </Button>
+        </div>
       </Reveal>
 
-      {/*
-        Not a seventh card in the grid below — the grid is deliberately "your
-        six agents." This is the other way in: one chat that figures out
-        which of them to consult, so a new owner never has to learn who
-        handles what.
-      */}
-      <Reveal delay={0.08}>
-        <Link
-          href="/chief-of-staff"
-          className="press group mt-6 flex items-center gap-4 rounded-lg border border-primary/25 bg-primary/[0.05] p-5 shadow-card hover:-translate-y-0.5 hover:shadow-lifted"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Users className="h-4.5 w-4.5" strokeWidth={1.75} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-display text-base font-semibold text-foreground">
-              Ask your Chief of Staff
-            </span>
-            <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-              Not sure which agent to ask? Talk to one place — it delegates to the right specialist
-              and brings back the answer.
-            </span>
-          </span>
-          <ArrowUpRight
-            className="h-4 w-4 shrink-0 text-subtle transition-transform duration-200 ease-physical group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary-ink"
-            strokeWidth={2}
-          />
-        </Link>
-      </Reveal>
+      {canReview && (
+        <section className="mt-10" aria-labelledby="attention-heading">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <h2
+              id="attention-heading"
+              className="font-display text-xl font-semibold tracking-[-0.02em] text-foreground"
+            >
+              Needs your attention
+            </h2>
+            {count > ATTENTION_COUNT && (
+              <p className="text-xs text-muted-foreground">
+                Showing {ATTENTION_COUNT} of {count}. Open Approvals above for the rest.
+              </p>
+            )}
+          </div>
+          {approvalsLoading ? (
+            <Skeleton className="h-28 w-full" />
+          ) : pending.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {pending.slice(0, ATTENTION_COUNT).map((approval) => (
+                <ApprovalCard key={approval.id} approval={approval} />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-lg border border-dashed border-border px-5 py-4 text-sm text-muted-foreground">
+              Nothing needs your attention. Anything an agent wants to send or change will wait here for your
+              approval first.
+            </p>
+          )}
+        </section>
+      )}
 
-      <div className="mt-10 mb-4 flex items-end justify-between gap-4">
-        <h2 className="font-display text-xl font-semibold tracking-[-0.02em] text-foreground">
-          Your agents
-        </h2>
-        {activityLoaded && activeSlugs.length > 0 && (
+      <div className="mb-4 mt-10 flex items-end justify-between gap-4">
+        <h2 className="font-display text-xl font-semibold tracking-[-0.02em] text-foreground">Your agents</h2>
+        {activityLoaded && activeSlugs.size > 0 && (
           <p className="text-xs text-muted-foreground">
-            <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-success align-middle" />
-            {activeSlugs.length} working in the last half hour
+            {activeSlugs.size} active in the last half hour
           </p>
         )}
       </div>
@@ -145,60 +159,23 @@ export default function DashboardHomePage() {
       <RevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {AGENTS.filter((agent) => agent.slug !== "chief-of-staff").map((agent) => {
           const Icon = agent.icon;
-          const isActive = activeSlugs.includes(agent.slug);
-          const isFocused = focusedSlug === agent.slug;
+          const isActive = activeSlugs.has(agent.slug);
           return (
             <RevealItem key={agent.slug}>
               <Link
                 href={`/${agent.slug}`}
-                /*
-                 * Hovering a card lights that agent's node in the graph above,
-                 * and hovering a node in the graph lights this card. The two
-                 * are one control, which is how you learn that the list and
-                 * the diagram describe the same six things.
-                 */
-                onMouseEnter={() => setFocusedSlug(agent.slug)}
-                onMouseLeave={() => setFocusedSlug(null)}
-                onFocus={() => setFocusedSlug(agent.slug)}
-                onBlur={() => setFocusedSlug(null)}
-                className={cn(
-                  "press group flex h-full flex-col rounded-lg border bg-card p-5 shadow-card",
-                  "hover:-translate-y-0.5 hover:shadow-lifted",
-                  isFocused ? "border-primary/40 shadow-lifted" : "border-border"
-                )}
+                className="press group flex h-full flex-col rounded-lg border border-border bg-card p-5 hover:border-foreground/25"
               >
-                <div className="flex items-start justify-between">
-                  <span
-                    className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-200 ease-physical",
-                      isFocused
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-primary/[0.08] text-primary-ink ring-1 ring-inset ring-primary/12"
-                    )}
-                  >
-                    <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
-                  </span>
-                  <ArrowUpRight
-                    className="h-4 w-4 text-subtle transition-transform duration-200 ease-physical group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary-ink"
-                    strokeWidth={2}
-                  />
-                </div>
-
+                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-foreground ring-1 ring-inset ring-border">
+                  <Icon className="h-5 w-5" strokeWidth={1.5} />
+                </span>
                 <h3 className="mt-4 font-display text-lg font-semibold leading-tight tracking-[-0.015em] text-foreground">
                   {agent.displayName}
                 </h3>
-                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  {agent.tagline}
-                </p>
-
+                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{agent.tagline}</p>
                 <span className="mt-4 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      isActive ? "animate-breathe bg-success" : "bg-subtle"
-                    )}
-                  />
-                  {isActive ? "Working now" : "Ready"}
+                  <span className={isActive ? "h-1.5 w-1.5 rounded-full bg-success" : "h-1.5 w-1.5 rounded-full bg-subtle"} />
+                  {isActive ? "Active" : "Ready"}
                 </span>
               </Link>
             </RevealItem>
@@ -206,22 +183,63 @@ export default function DashboardHomePage() {
         })}
       </RevealGroup>
 
+      <section className="mt-10" aria-labelledby="recent-heading">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <h2
+            id="recent-heading"
+            className="font-display text-xl font-semibold tracking-[-0.02em] text-foreground"
+          >
+            Recent activity
+          </h2>
+          <Link href="/activity" className="text-sm font-medium text-primary-ink hover:underline">
+            View all
+          </Link>
+        </div>
+        <div className="rounded-lg border border-border bg-card">
+          {!activityLoaded ? (
+            <div className="flex flex-col gap-3 p-5">
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ) : recent.length > 0 ? (
+            <ul className="divide-y divide-border">
+              {recent.map((entry) => (
+                <li key={entry.id} className="flex items-baseline justify-between gap-4 px-5 py-3 text-sm">
+                  <span className="min-w-0 truncate text-foreground">
+                    {entry.summary ?? entry.action.replace(/_/g, " ")}
+                    <span className="text-muted-foreground">
+                      {" · "}
+                      {AGENTS.find((a) => a.slug === entry.agent_slug)?.displayName ?? "Mesnium"}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                    {formatRelativeTime(entry.created_at)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="px-5 py-4 text-sm text-muted-foreground">
+              No work here yet. Tell Mesnium what needs doing, and every action will be recorded in Activity.
+            </p>
+          )}
+        </div>
+      </section>
+
       <RevealGroup className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2" delay={0.05}>
         <RevealItem>
           <Link
             href="/knowledge"
-            className="press group flex h-full items-start gap-4 rounded-lg border border-border bg-card p-5 shadow-card hover:-translate-y-0.5 hover:shadow-lifted"
+            className="press group flex h-full items-start gap-4 rounded-lg border border-border bg-card p-5 hover:border-foreground/25"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground ring-1 ring-inset ring-border">
-              <BookOpen className="h-4.5 w-4.5" strokeWidth={1.75} />
+              <BookOpen className="h-5 w-5" strokeWidth={1.5} />
             </span>
             <span className="min-w-0">
-              <span className="block font-display text-base font-semibold text-foreground">
-                Knowledge
-              </span>
+              <span className="block font-display text-base font-semibold text-foreground">Knowledge</span>
               <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                Add your price list, policies, or service menu so every agent answers the same way
-                you would.
+                Add your price list, policies or service menu so every agent answers the way you would.
               </span>
             </span>
           </Link>
@@ -229,29 +247,17 @@ export default function DashboardHomePage() {
 
         <RevealItem>
           <Link
-            href="/activity"
-            className="press group flex h-full items-start gap-4 rounded-lg border border-border bg-card p-5 shadow-card hover:-translate-y-0.5 hover:shadow-lifted"
+            href="/settings/integrations"
+            className="press group flex h-full items-start gap-4 rounded-lg border border-border bg-card p-5 hover:border-foreground/25"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground ring-1 ring-inset ring-border">
-              <ListChecks className="h-4.5 w-4.5" strokeWidth={1.75} />
+              <Plug className="h-5 w-5" strokeWidth={1.5} />
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-display text-base font-semibold text-foreground">
-                Activity
+            <span className="min-w-0">
+              <span className="block font-display text-base font-semibold text-foreground">Connections</span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                Connect your calendar, inbox and store. You see what each one allows before you turn it on.
               </span>
-              {!activityLoaded ? (
-                <Skeleton className="mt-2 h-3 w-3/4" />
-              ) : latest ? (
-                <span className="mt-1 block truncate text-sm text-muted-foreground">
-                  Latest: {latest.summary ?? latest.action.replace(/_/g, " ")} ·{" "}
-                  {formatRelativeTime(latest.created_at)}
-                </span>
-              ) : (
-                <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
-                  Every booking, reply, and action your agents take gets logged here in plain
-                  language.
-                </span>
-              )}
             </span>
           </Link>
         </RevealItem>

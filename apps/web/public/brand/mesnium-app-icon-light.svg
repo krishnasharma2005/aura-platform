@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mesnium">
+  <title>Mesnium</title>
+  <rect x="1.02" y="1.02" width="509.95" height="509.95" rx="115.2" fill="#F8F8F6" stroke="#E5E5E1" stroke-width="2.05"/>
+  <g transform="translate(112.64 139.52) scale(2.24)">
+    <path fill="#171819" d="M0 30C0 11 13 0 30 0C40 0 48 4 55 12L75 35L21 76C11 84 0 79 0 68L0 30Z"/>
+    <path fill="#BF2942" d="M49 68L99 29C113 18 128 26 128 42L128 78C128 96 116 104 99 104L87 104C77 104 71 101 65 94L49 68Z"/>
+  </g>
+</svg>

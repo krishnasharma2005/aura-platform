@@ -12,15 +12,21 @@ export function IntegrationCard({
   definition,
   integration,
   onConnect,
+  onDisconnect,
   isConnecting,
 }: {
   definition: IntegrationDefinition;
   integration: Integration | undefined;
   onConnect: (provider: string) => void;
+  onDisconnect: (provider: string) => void;
   isConnecting: boolean;
 }) {
   const Icon = definition.icon;
   const isConnected = integration?.status === "connected";
+  // Disconnecting stops agents using the account straight away, so it takes two
+  // deliberate clicks rather than one.
+  const [confirmingDisconnect, setConfirmingDisconnect] = React.useState(false);
+  const isGoogle = definition.provider === "google_calendar" || definition.provider === "gmail";
 
   return (
     /*
@@ -80,14 +86,57 @@ export function IntegrationCard({
         </div>
 
         {definition.availableNow ? (
-          <Button
-            variant={isConnected ? "outline" : "default"}
-            className="w-full"
-            disabled={isConnecting}
-            onClick={() => onConnect(definition.provider)}
-          >
-            {isConnecting ? "Connecting…" : isConnected ? "Reconnect" : "Connect"}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              variant={isConnected ? "outline" : "default"}
+              className="w-full"
+              disabled={isConnecting}
+              onClick={() => onConnect(definition.provider)}
+            >
+              {isConnecting ? "Connecting…" : isConnected ? "Reconnect" : "Connect"}
+            </Button>
+
+            {isConnected &&
+              (confirmingDisconnect ? (
+                <div className="flex flex-col gap-2 rounded-md border border-border bg-secondary/40 p-3">
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {isGoogle
+                      ? "This disconnects both Calendar and Gmail, and your agents lose access straight away."
+                      : `Your agents lose access to ${definition.displayName} straight away.`}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => {
+                        setConfirmingDisconnect(false);
+                        onDisconnect(definition.provider);
+                      }}
+                    >
+                      Yes, disconnect
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={() => setConfirmingDisconnect(false)}
+                    >
+                      Keep it
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="w-full text-muted-foreground"
+                  onClick={() => setConfirmingDisconnect(true)}
+                >
+                  Disconnect
+                </Button>
+              ))}
+          </div>
         ) : (
           <Button variant="secondary" className="w-full" disabled>
             Coming soon — contact us to enable

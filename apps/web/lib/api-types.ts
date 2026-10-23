@@ -240,7 +240,13 @@ export type IntegrationProvider =
   | "hubspot"
   | "shopify";
 
-export type IntegrationStatus = "connected" | "not_connected" | "coming_soon" | "redirect" | "error";
+export type IntegrationStatus =
+  | "connected"
+  | "not_connected"
+  | "coming_soon"
+  | "redirect"
+  | "needs_credentials"
+  | "error";
 
 export interface Integration {
   provider: IntegrationProvider | string;

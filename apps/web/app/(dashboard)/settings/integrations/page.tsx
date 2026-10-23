@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { errorMessage } from "@/lib/utils";
 import type { Integration } from "@/lib/api-types";
-import { INTEGRATIONS } from "@/lib/integrations";
+import { INTEGRATIONS, type IntegrationDefinition } from "@/lib/integrations";
 import { IntegrationCard } from "@/components/integrations/integration-card";
+import { ConnectKeyDialog } from "@/components/integrations/connect-key-dialog";
 import { WebsiteChatPanel } from "@/components/integrations/website-chat-panel";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -36,6 +37,8 @@ export default function IntegrationsSettingsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [connectingProvider, setConnectingProvider] = React.useState<string | null>(null);
+  // Which app's "paste your key" form is open, if any.
+  const [keyDialogFor, setKeyDialogFor] = React.useState<IntegrationDefinition | null>(null);
 
   const load = React.useCallback(async () => {
     setIsLoading(true);
@@ -71,7 +74,34 @@ export default function IntegrationsSettingsPage() {
     }
   }
 
+  async function handleDisconnect(provider: string) {
+    const definition = INTEGRATIONS.find((i) => i.provider === provider);
+    setConnectingProvider(provider);
+    try {
+      await api.integrations.disconnect(provider);
+      toast({
+        title: "Disconnected",
+        description: `Your agents can no longer use ${definition?.displayName ?? "that app"}.`,
+      });
+      await load();
+    } catch (err) {
+      toast({
+        title: "Couldn't disconnect",
+        description: errorMessage(err, "Something went wrong. Nothing was changed — please try again."),
+        variant: "destructive",
+      });
+    } finally {
+      setConnectingProvider(null);
+    }
+  }
+
   async function handleConnect(provider: string) {
+    // Apps with no sign-in redirect ask for a key on a form instead.
+    const definition = INTEGRATIONS.find((i) => i.provider === provider);
+    if (definition?.credentials) {
+      setKeyDialogFor(definition);
+      return;
+    }
     setConnectingProvider(provider);
     try {
       const result = await api.integrations.connect(provider);
@@ -132,10 +162,24 @@ export default function IntegrationsSettingsPage() {
             definition={def}
             integration={integrations.find((i) => i.provider === def.provider)}
             onConnect={handleConnect}
+            onDisconnect={handleDisconnect}
             isConnecting={connectingProvider === def.provider || isLoading}
           />
         ))}
       </div>
+
+      <ConnectKeyDialog
+        definition={keyDialogFor}
+        open={keyDialogFor !== null}
+        onOpenChange={(open) => !open && setKeyDialogFor(null)}
+        onConnected={(definition) => {
+          toast({
+            title: `${definition.displayName} connected`,
+            description: "You're all set — your agents can now use it.",
+          });
+          load();
+        }}
+      />
     </div>
   );
 }

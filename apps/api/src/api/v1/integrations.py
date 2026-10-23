@@ -14,17 +14,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import get_settings
 from src.core.db import get_db
 from src.core.logging import get_logger
-from src.identity.deps import get_active_organization
-from src.identity.models import Organization
+from src.core.exceptions import ValidationError
+from src.identity.deps import get_active_organization, require_org_role
+from src.identity.models import MembershipRole, Organization
 from src.tools import google_oauth
+from src.tools.credentials import CREDENTIAL_PROVIDERS, verify_credentials
 from src.tools.google_oauth import GoogleOAuthError
 from src.tools.models import Integration
-from src.tools.oauth_common import get_metadata, store_integration
+from src.tools.oauth_common import get_access_token, get_metadata, get_refresh_token, store_integration
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
 AVAILABLE_PROVIDERS = ["google", "whatsapp", "slack", "hubspot", "shopify"]
+
+# Connecting or disconnecting an app decides what agents can reach and send on
+# the business's behalf, so it is an owner/admin decision — the same bar as
+# approving an action. Listing stays open to any member.
+_operator = require_org_role(MembershipRole.owner, MembershipRole.admin)
 
 
 class ConnectIntegrationRequest(BaseModel):
@@ -41,7 +48,8 @@ class IntegrationStatus(BaseModel):
 
 
 class ConnectResult(BaseModel):
-    status: str  # "connected" | "redirect" | "coming_soon" | "error"
+    # "connected" | "redirect" | "needs_credentials" | "coming_soon" | "error"
+    status: str
     redirect_url: str | None = None
 
 
@@ -66,21 +74,65 @@ async def list_integrations(
 @router.post("", response_model=IntegrationStatus)
 async def connect_integration(
     payload: ConnectIntegrationRequest,
-    organization: Organization = Depends(get_active_organization),
+    organization: Organization = Depends(_operator),
     db: AsyncSession = Depends(get_db),
 ) -> IntegrationStatus:
-    """Manual token-paste path: store a token an org admin already has (e.g. a
-    HubSpot private app token). This is the only working connect path for
-    providers other than Google — see docs/needs-founder-input.md."""
+    """Connect an app by pasting its key.
+
+    For WhatsApp, Slack, HubSpot and Shopify the key is checked against the other
+    app first (see tools/credentials.py) and only saved if it works; only the
+    whitelisted, non-secret details that check returns are stored alongside it.
+    Other providers keep the original behaviour (store what was sent) — Google
+    normally connects through its own sign-in instead."""
+    if payload.provider not in AVAILABLE_PROVIDERS:
+        raise ValidationError("That app can't be connected yet.")
+
+    metadata = payload.metadata
+    if payload.provider in CREDENTIAL_PROVIDERS:
+        verified = await verify_credentials(payload.provider, payload.access_token, payload.metadata)
+        metadata = {
+            **verified.metadata,
+            "connected_at": datetime.now(UTC).isoformat(),
+            "account_label": verified.account_label,
+        }
+
     integration = await store_integration(
         db,
         org_id=organization.id,
         provider=payload.provider,
-        access_token=payload.access_token,
+        access_token=payload.access_token.strip(),
         refresh_token=payload.refresh_token,
-        metadata=payload.metadata,
+        metadata=metadata,
     )
     return IntegrationStatus(provider=integration.provider, connected=True, metadata=get_metadata(integration))
+
+
+@router.delete("/{provider}", status_code=204)
+async def disconnect_integration(
+    provider: str,
+    organization: Organization = Depends(_operator),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Forget the stored credentials. Agents lose access immediately; anything
+    they had queued for approval stays queued and will simply fail if approved.
+    Idempotent — disconnecting something that isn't connected is not an error."""
+    if provider not in AVAILABLE_PROVIDERS:
+        raise ValidationError("That app can't be disconnected.")
+    result = await db.execute(
+        select(Integration).where(Integration.org_id == organization.id, Integration.provider == provider)
+    )
+    integration = result.scalar_one_or_none()
+    if integration is None:
+        return None
+
+    if provider == "google":
+        # Best effort: also tell Google to revoke the grant, so the app disappears
+        # from the owner's Google account permissions and not just from ours.
+        await google_oauth.revoke(get_refresh_token(integration) or get_access_token(integration))
+
+    await db.delete(integration)
+    await db.commit()
+    return None
 
 
 @router.post("/{provider}/connect", response_model=ConnectResult)
@@ -88,16 +140,18 @@ async def start_connect_flow(
     provider: str,
     organization: Organization = Depends(get_active_organization),
 ) -> ConnectResult:
-    """One-click "Connect" from the dashboard. Google has a real OAuth consent
-    redirect once GOOGLE_OAUTH_CLIENT_ID/SECRET are set; every other provider
-    connects by pasting a token today (see docs/needs-founder-input.md) and
-    this honestly reports "coming soon" for those rather than pretending a
-    redirect flow exists."""
+    """What the dashboard's "Connect" button should do for a provider: Google
+    redirects into its consent screen once GOOGLE_OAUTH_CLIENT_ID/SECRET are
+    set; WhatsApp, Slack, HubSpot and Shopify ask for a key
+    ("needs_credentials"); anything else honestly reports "coming soon"."""
     if provider not in AVAILABLE_PROVIDERS:
         return ConnectResult(status="error")
     if provider == "google" and google_oauth.is_configured():
         redirect_url = await google_oauth.build_authorize_url(organization.id)
         return ConnectResult(status="redirect", redirect_url=redirect_url)
+    if provider in CREDENTIAL_PROVIDERS:
+        # No sign-in redirect for these: the dashboard asks for the key itself.
+        return ConnectResult(status="needs_credentials")
     return ConnectResult(status="coming_soon")
 
 

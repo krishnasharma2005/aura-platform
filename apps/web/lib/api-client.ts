@@ -365,6 +365,23 @@ export const api = {
       const backendProvider = provider === "google_calendar" || provider === "gmail" ? "google" : provider;
       return request<ConnectIntegrationResponse>(`/integrations/${backendProvider}/connect`, { method: "POST" });
     },
+    // Connect an app by pasting its key. The server checks the key against the
+    // other app first, so a wrong one comes back as a plain-language error and
+    // nothing is saved. `tokenField` names which form field is the secret; the
+    // rest (store address, phone number id) travel as metadata.
+    connectWithKey: (provider: string, tokenField: string, values: Record<string, string>) => {
+      const { [tokenField]: accessToken, ...metadata } = values;
+      return request<{ provider: string; connected: boolean; metadata: Record<string, unknown> }>("/integrations", {
+        method: "POST",
+        body: { provider, access_token: accessToken ?? "", metadata },
+      });
+    },
+    // Both Google cards (Calendar and Gmail) are one connection on the backend,
+    // so disconnecting either removes both.
+    disconnect: (provider: string) => {
+      const backendProvider = provider === "google_calendar" || provider === "gmail" ? "google" : provider;
+      return request<void>(`/integrations/${backendProvider}`, { method: "DELETE" });
+    },
   },
   // The org's own business facts, grounding every agent's prompt. GET is
   // open to any accepted member; PATCH/reset are owner/admin only on the

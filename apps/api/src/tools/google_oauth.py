@@ -36,6 +36,7 @@ logger = get_logger(__name__)
 AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
+REVOKE_URL = "https://oauth2.googleapis.com/revoke"
 
 # Calendar read/write, Gmail read + send (not gmail.modify — no need for the
 # ability to delete or relabel mail the org didn't send), and the email
@@ -159,3 +160,15 @@ async def fetch_email(access_token: str) -> str | None:
         return response.json().get("email")
     except httpx.HTTPError:
         return None
+
+
+async def revoke(token: str | None) -> None:
+    """Best-effort: ask Google to revoke a grant when an owner disconnects.
+    Never raises — a failure here must not stop the disconnect itself."""
+    if not token:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(REVOKE_URL, data={"token": token})
+    except httpx.HTTPError:
+        logger.warning("google_oauth_revoke_failed")

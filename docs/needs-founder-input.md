@@ -79,10 +79,13 @@ customer org).
 `integrations` table, and raises a clean, plain-language error (never a stack
 trace or "OAuth"/"token" jargon shown to the customer) when a tool is called
 before its integration is connected. Google's OAuth consent redirect is now
-built (see #2) — the only remaining work for #3–6 once real provider
-credentials exist is pasting the token in; WhatsApp/Slack/HubSpot/Shopify use
-pasted tokens by design at this scale, matching how most SMB tools connect
-these.
+built (see #2). WhatsApp, Slack, HubSpot and Shopify connect by pasting a key
+into a form on Settings → Integrations (`src/tools/credentials.py`): the key is
+checked against the other app before it is saved, and an unsafe store address
+is refused before any request is made. Owners and admins can also disconnect.
+What's still needed for #3–6 is real credentials to try it against — none of
+the four has been connected to a real account yet, only exercised against test
+doubles and the apps' rejection of made-up keys.
 
 ## 7. Application encryption key (`ENCRYPTION_KEY`)
 **What:** a Fernet key, generated once with

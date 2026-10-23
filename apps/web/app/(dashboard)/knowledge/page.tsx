@@ -151,7 +151,7 @@ export default function KnowledgePage() {
             </Button>
           </form>
 
-          {searchError && <p className="mt-3 text-sm text-destructive">{searchError}</p>}
+          {searchError && <p className="mt-3 text-sm text-destructive-ink">{searchError}</p>}
 
           {results && (
             <div className="mt-4 flex flex-col gap-3">
@@ -180,7 +180,7 @@ export default function KnowledgePage() {
           {isLoadingDocs ? (
             <p className="text-sm text-muted-foreground">Loading documents…</p>
           ) : loadError ? (
-            <p className="text-sm text-destructive">{loadError}</p>
+            <p className="text-sm text-destructive-ink">{loadError}</p>
           ) : documents.length === 0 ? (
             <div className="rounded-md border border-dashed border-border px-4 py-8 text-center">
               <p className="text-sm text-muted-foreground">

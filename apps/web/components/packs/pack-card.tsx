@@ -47,7 +47,7 @@ export function PackCard({
         {pack.capability_requirements.length > 0 && (
           <div className="mt-auto flex flex-col gap-2 rounded-md bg-secondary/40 p-3.5">
             <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Works best with
+              <ShieldCheck className="h-3.5 w-3.5 text-primary-ink" /> Works best with
             </div>
             <div className="flex flex-wrap gap-1.5">
               {pack.capability_requirements.map((cap) => (

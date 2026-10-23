@@ -102,7 +102,7 @@ export default function MembersSettingsPage() {
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading team…</p>
         ) : error ? (
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-sm text-destructive-ink">{error}</p>
         ) : members.length === 0 ? (
           <div className="rounded-md border border-dashed border-border px-4 py-8 text-center">
             <p className="text-sm text-muted-foreground">

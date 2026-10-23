@@ -118,7 +118,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={logout}
-            className="flex items-center gap-2 text-destructive focus:text-destructive"
+            className="flex items-center gap-2 text-destructive-ink focus:text-destructive-ink"
           >
             <LogOut className="h-4 w-4" strokeWidth={1.75} /> Sign out
           </DropdownMenuItem>

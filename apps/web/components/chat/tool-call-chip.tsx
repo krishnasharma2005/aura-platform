@@ -67,7 +67,7 @@ export function ToolCallChip({ toolCall }: { toolCall: ToolCall }) {
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-2xs font-semibold",
         status === "error"
-          ? "border-destructive/25 bg-destructive/[0.08] text-destructive"
+          ? "border-destructive/25 bg-destructive/[0.08] text-destructive-ink"
           : status === "pending"
           ? "border-border bg-secondary text-muted-foreground"
           : "border-border bg-secondary/70 text-muted-foreground"
@@ -81,7 +81,7 @@ export function ToolCallChip({ toolCall }: { toolCall: ToolCall }) {
         <Icon className="h-3 w-3" strokeWidth={2} />
       )}
       <span className="capitalize">{text}</span>
-      {status === "success" && <Check className="h-3 w-3 text-success" strokeWidth={2.75} />}
+      {status === "success" && <Check className="h-3 w-3 text-success-ink" strokeWidth={2.75} />}
     </motion.span>
   );
 }

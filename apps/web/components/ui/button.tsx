@@ -5,10 +5,9 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Buttons are physical. Every variant carries the same three material cues as
- * a raised surface — a lit top bevel, a tinted contact shadow, and a hairline
- * — and every one of them takes a real press: the button scales down under
- * the pointer and its shadow tightens, the way a key does.
+ * Buttons are matte: flat fills and hairlines, no bevel and no glow (brandbook:
+ * "no gradients, no glow"). Crimson is the one deliberate signal, so only the
+ * primary action carries it. Every variant takes a small press.
  */
 const buttonVariants = cva(
   [
@@ -27,9 +26,7 @@ const buttonVariants = cva(
       variant: {
         default: [
           "bg-primary text-primary-foreground",
-          "shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.18),0_1px_2px_-1px_hsl(var(--foreground)/0.3),0_6px_16px_-8px_hsl(var(--primary)/0.55)]",
-          "hover:bg-primary/92 hover:shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.22),0_2px_4px_-2px_hsl(var(--foreground)/0.3),0_10px_24px_-10px_hsl(var(--primary)/0.6)]",
-          "active:shadow-[inset_0_1px_2px_0_hsl(var(--foreground)/0.25)]",
+          "hover:bg-primary/90",
         ].join(" "),
         secondary:
           "border border-border bg-card text-foreground shadow-subtle hover:bg-secondary/70 hover:border-foreground/15 active:shadow-inset",
@@ -37,8 +34,8 @@ const buttonVariants = cva(
           "border border-border bg-transparent text-foreground hover:bg-secondary/60 hover:border-foreground/15",
         ghost: "text-foreground hover:bg-secondary/70",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.18),0_1px_2px_-1px_hsl(var(--foreground)/0.3)] hover:bg-destructive/92",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        link: "text-primary-ink underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9.5 px-4 py-2",

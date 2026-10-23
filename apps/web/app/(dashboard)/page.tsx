@@ -74,7 +74,7 @@ export default function DashboardHomePage() {
         </p>
         <h1 className="mt-2 font-display text-4xl font-semibold tracking-[-0.03em] text-foreground">
           Six agents.{" "}
-          <span className="text-primary">One shared brain.</span>
+          <span className="text-primary-ink">One shared brain.</span>
         </h1>
         <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
           {firstName ? `${firstName}, everything ` : "Everything "}
@@ -124,7 +124,7 @@ export default function DashboardHomePage() {
             </span>
           </span>
           <ArrowUpRight
-            className="h-4 w-4 shrink-0 text-subtle transition-transform duration-200 ease-physical group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+            className="h-4 w-4 shrink-0 text-subtle transition-transform duration-200 ease-physical group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary-ink"
             strokeWidth={2}
           />
         </Link>
@@ -173,13 +173,13 @@ export default function DashboardHomePage() {
                       "flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-200 ease-physical",
                       isFocused
                         ? "bg-primary text-primary-foreground"
-                        : "bg-primary/[0.08] text-primary ring-1 ring-inset ring-primary/12"
+                        : "bg-primary/[0.08] text-primary-ink ring-1 ring-inset ring-primary/12"
                     )}
                   >
                     <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
                   </span>
                   <ArrowUpRight
-                    className="h-4 w-4 text-subtle transition-transform duration-200 ease-physical group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                    className="h-4 w-4 text-subtle transition-transform duration-200 ease-physical group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary-ink"
                     strokeWidth={2}
                   />
                 </div>

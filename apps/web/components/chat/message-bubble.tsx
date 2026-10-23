@@ -45,7 +45,7 @@ export function MessageBubble({
             "text-[0.625rem] font-semibold",
             isUser
               ? "bg-secondary text-muted-foreground"
-              : "bg-primary/[0.10] text-primary ring-1 ring-inset ring-primary/15"
+              : "bg-primary/[0.10] text-primary-ink ring-1 ring-inset ring-primary/15"
           )}
         >
           {isUser ? "You" : agentLabel.slice(0, 2).toUpperCase()}

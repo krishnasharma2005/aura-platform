@@ -54,7 +54,7 @@ export default function ConversationsPage() {
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading conversations…</p>
           ) : error ? (
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive-ink">{error}</p>
           ) : conversations.length === 0 ? (
             <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
               <MessagesSquare className="mx-auto h-6 w-6 text-subtle" strokeWidth={1.5} />
@@ -70,7 +70,7 @@ export default function ConversationsPage() {
                     href={`/conversations/${encodeURIComponent(conversation.id)}`}
                     className="press tap-h flex items-start gap-3 rounded-md py-3.5 hover:bg-secondary/50"
                   >
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary-ink">
                       <MessageCircle className="h-4 w-4" strokeWidth={1.75} />
                     </span>
                     <div className="min-w-0 flex-1">

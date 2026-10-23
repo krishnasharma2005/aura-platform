@@ -35,7 +35,7 @@ export function Dropzone({ onFiles, disabled }: { onFiles: (files: FileList) => 
         disabled && "cursor-not-allowed opacity-60"
       )}
     >
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary-ink">
         <UploadCloud className="h-5 w-5" strokeWidth={1.75} />
       </span>
       <div>

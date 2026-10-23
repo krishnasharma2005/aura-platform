@@ -34,7 +34,7 @@ export function ApprovalsTray() {
           className={cn(
             "press tap-h relative flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-semibold",
             count > 0
-              ? "border-primary/30 bg-primary/[0.07] text-primary hover:bg-primary/[0.11]"
+              ? "border-primary/30 bg-primary/[0.07] text-primary-ink hover:bg-primary/[0.11]"
               : "border-border bg-card text-muted-foreground hover:text-foreground"
           )}
           aria-label={
@@ -82,7 +82,7 @@ export function ApprovalsTray() {
             </div>
           ) : count === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-5 py-10 text-center">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success-ink">
                 <ShieldCheck className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <p className="text-sm font-semibold text-foreground">Nothing needs you</p>

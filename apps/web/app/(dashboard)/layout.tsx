@@ -8,7 +8,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AuraLogo } from "@/components/runtime/aura-mark";
+import { MesniumLogo } from "@/components/brand/mesnium-logo";
 
 /**
  * While we check the stored session we render the workspace's own silhouette
@@ -19,7 +19,7 @@ function WorkspaceSkeleton() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <div className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-4 py-5 md:flex">
-        <AuraLogo tone="onDark" />
+        <MesniumLogo tone="onDark" className="h-7 w-auto" />
         <div className="mt-8 flex flex-col gap-2.5">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-6 w-full bg-white/[0.06]" />

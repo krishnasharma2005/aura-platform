@@ -20,7 +20,7 @@ export default function AgentPage() {
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-border bg-card/40 px-5 py-3.5 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/[0.08] text-primary ring-1 ring-inset ring-primary/15">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/[0.08] text-primary-ink ring-1 ring-inset ring-primary/15">
             <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
           </span>
           <div className="min-w-0">

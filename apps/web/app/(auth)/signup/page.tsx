@@ -77,7 +77,7 @@ export default function SignupPage() {
             />
           </div>
           {error && (
-            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive-ink">
               {error}
             </p>
           )}
@@ -87,7 +87,7 @@ export default function SignupPage() {
         </form>
         <p className="mt-5 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href="/login" className="font-medium text-primary-ink hover:underline">
             Sign in
           </Link>
         </p>

@@ -131,7 +131,7 @@ export function WebsiteChatPanel() {
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : error ? (
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-sm text-destructive-ink">{error}</p>
         ) : !publicId ? (
           <p className="text-sm text-muted-foreground">
             Set up your business profile first — your chat code will appear here once it&rsquo;s ready.

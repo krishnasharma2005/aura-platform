@@ -105,8 +105,8 @@ export function ApprovalCard({
     >
       {/* A calm signal band, not a warning stripe. */}
       <div className="flex items-center gap-2 border-b border-primary/15 bg-primary/[0.055] px-3.5 py-2">
-        <ShieldQuestion className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.9} />
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary">
+        <ShieldQuestion className="h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.9} />
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-primary-ink">
           Needs your OK
         </span>
       </div>
@@ -188,7 +188,7 @@ function ResolvedNote({
           <X className="h-2.5 w-2.5" strokeWidth={3} />
         )}
       </span>
-      <p className={cn("text-xs leading-relaxed", approved ? "text-success" : "text-muted-foreground")}>
+      <p className={cn("text-xs leading-relaxed", approved ? "text-success-ink" : "text-muted-foreground")}>
         {message ?? (approved ? "Approved — going ahead now." : "Declined. Nothing was changed.")}
       </p>
     </div>

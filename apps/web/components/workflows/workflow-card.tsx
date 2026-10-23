@@ -32,14 +32,14 @@ import { useToast } from "@/components/ui/use-toast";
 
 function StepIcon({ status }: { status: WorkflowStep["status"] }) {
   if (status === "failed") {
-    return <X className="h-3 w-3 text-destructive" strokeWidth={2.5} aria-hidden="true" />;
+    return <X className="h-3 w-3 text-destructive-ink" strokeWidth={2.5} aria-hidden="true" />;
   }
   if (status === "running") {
     return (
       <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" strokeWidth={2.5} aria-hidden="true" />
     );
   }
-  return <Check className="h-3 w-3 text-success" strokeWidth={2.5} aria-hidden="true" />;
+  return <Check className="h-3 w-3 text-success-ink" strokeWidth={2.5} aria-hidden="true" />;
 }
 
 /** "pack_dental" -> "Dental pack". */
@@ -66,8 +66,8 @@ function RunRow({ run }: { run: WorkflowRun }) {
         <span
           className={cn(
             "inline-flex items-center gap-1.5 text-xs font-semibold",
-            run.status === "failed" && "text-destructive",
-            run.status === "success" && "text-success",
+            run.status === "failed" && "text-destructive-ink",
+            run.status === "success" && "text-success-ink",
             run.status === "running" && "text-muted-foreground"
           )}
         >
@@ -251,7 +251,7 @@ export function WorkflowCard({
             <Clock3 className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             {triggerSentence(workflow.trigger)}
             {workflow.pack_id && (
-              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-semibold text-primary">
+              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-semibold text-primary-ink">
                 {packLabel(workflow.pack_id)}
               </span>
             )}
@@ -268,7 +268,7 @@ export function WorkflowCard({
           <span
             className={cn(
               "text-2xs font-semibold uppercase tracking-[0.1em]",
-              workflow.enabled ? "text-primary" : "text-subtle"
+              workflow.enabled ? "text-primary-ink" : "text-subtle"
             )}
           >
             {workflow.enabled ? "On" : "Off"}
@@ -297,7 +297,7 @@ export function WorkflowCard({
           type="button"
           onClick={() => setTestOpen((open) => !open)}
           aria-expanded={testOpen}
-          className="tap-h press inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-primary hover:underline"
+          className="tap-h press inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-primary-ink hover:underline"
         >
           <Play className="h-3 w-3" strokeWidth={2.25} aria-hidden="true" />
           Run a test
@@ -308,7 +308,7 @@ export function WorkflowCard({
             onClick={openPanel}
             aria-expanded={isOpen}
             aria-controls={panelId}
-            className="tap-h press inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-primary hover:underline"
+            className="tap-h press inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-primary-ink hover:underline"
           >
             {isOpen ? "Hide history" : "See what it did"}
             <ChevronDown

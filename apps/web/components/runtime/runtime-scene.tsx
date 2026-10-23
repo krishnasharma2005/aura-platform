@@ -122,7 +122,7 @@ function CoreAssembly({ palette, energy }: { palette: Palette; energy: number })
         two collided every time an agent drifted to the back of the orbit.
       */}
       <Html center position={[0, 1.66, 0]} zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
-        <span className="select-none whitespace-nowrap rounded-full border border-primary/25 bg-card/90 px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-primary shadow-subtle">
+        <span className="select-none whitespace-nowrap rounded-full border border-primary/25 bg-card/90 px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.16em] text-primary-ink shadow-subtle">
           One runtime
         </span>
       </Html>
@@ -363,7 +363,7 @@ function AgentNode({
             dimmed
               ? "border-border/40 bg-card/70 text-subtle"
               : focused
-              ? "border-primary/40 bg-card text-primary shadow-subtle"
+              ? "border-primary/40 bg-card text-primary-ink shadow-subtle"
               : "border-border/70 bg-card text-foreground shadow-subtle"
           }`}
         >
@@ -397,18 +397,18 @@ function Scene({
 }: SceneProps) {
   const groupRef = React.useRef<THREE.Group>(null);
   const [palette, setPalette] = React.useState<Palette>({
-    core: "#14544e",
-    edge: "#94a39e",
-    node: "#2b3339",
-    plate: "#6f7d79",
+    core: "#BF2942",
+    edge: "#969895",
+    node: "#303234",
+    plate: "#969895",
   });
 
   React.useEffect(() => {
     setPalette({
-      core: themeColor("--graph-core", "#14544e"),
-      edge: themeColor("--graph-edge", "#94a39e"),
-      node: themeColor("--graph-core", "#2b3339"),
-      plate: themeColor("--graph-edge", "#6f7d79"),
+      core: themeColor("--graph-core", "#BF2942"),
+      edge: themeColor("--graph-edge", "#969895"),
+      node: themeColor("--graph-core", "#303234"),
+      plate: themeColor("--graph-edge", "#969895"),
     });
   }, []);
 

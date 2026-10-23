@@ -117,13 +117,13 @@ export function ConnectKeyDialog({
           ))}
 
           {error && (
-            <p role="alert" className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive-ink">
               {error}
             </p>
           )}
 
           <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-            <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.75} />
+            <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.75} />
             We check it works before saving it, store it encrypted, and never show it again. You can disconnect any
             time.
           </p>

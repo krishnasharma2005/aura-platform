@@ -113,7 +113,7 @@ export default function WorkflowsPage() {
             </p>
             <Link
               href="/settings/integrations"
-              className="press mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+              className="press mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary-ink hover:underline"
             >
               Connect an account
               <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />

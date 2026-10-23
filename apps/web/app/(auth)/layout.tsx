@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
-import { AuraLogo } from "@/components/runtime/aura-mark";
+import { MesniumLogo } from "@/components/brand/mesnium-logo";
 import { RuntimeGraphStatic } from "@/components/runtime/runtime-graph-static";
 import { SHARED_LAYERS } from "@/lib/runtime-graph";
 
@@ -22,13 +22,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="flex min-h-[100dvh] flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       {/* The panel. Full height on desktop, a slim band on mobile. */}
       <aside className="relative flex flex-col justify-between overflow-hidden bg-sidebar px-6 py-6 text-sidebar-foreground sm:px-10 lg:py-12">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_60%_80%_at_50%_0%,hsl(var(--primary)/0.20),transparent_70%)]"
-        />
-
         <Link href="/login" className="tap-h relative z-10 inline-flex w-fit items-center">
-          <AuraLogo tone="onDark" />
+          <MesniumLogo tone="onDark" className="h-8 w-auto" />
         </Link>
 
         <div className="relative z-10 hidden flex-1 flex-col justify-center py-8 lg:flex">
@@ -66,7 +61,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <p className="relative z-10 mt-6 hidden items-start gap-2 text-xs leading-relaxed text-sidebar-muted lg:flex">
-          <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.75} />
+          <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.75} />
           Your data stays with your business. We always show you exactly what Mesnium can see before
           you connect anything.
         </p>
@@ -76,7 +71,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <main className="flex flex-1 flex-col items-center justify-center bg-background px-5 py-10 sm:px-8 sm:py-14">
         <div className="w-full max-w-md">{children}</div>
         <p className="mt-8 flex max-w-md items-start gap-2 text-xs leading-relaxed text-muted-foreground lg:hidden">
-          <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={1.75} />
+          <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink" strokeWidth={1.75} />
           Your data stays with your business. We always show you exactly what Mesnium can see before
           you connect anything.
         </p>

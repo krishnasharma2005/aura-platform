@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
     return (
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <span className="mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <span className="mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary-ink">
             <MailCheck className="h-5 w-5" strokeWidth={1.75} />
           </span>
           <CardTitle>Check your email</CardTitle>
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">
           <p>Nothing there? Check your spam folder, or make sure you used the address you signed up with.</p>
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href="/login" className="font-medium text-primary-ink hover:underline">
             Back to sign in
           </Link>
         </CardContent>
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
             />
           </div>
           {error && (
-            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive-ink">
               {error}
             </p>
           )}
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
         </form>
         <p className="mt-5 text-center text-sm text-muted-foreground">
           Remembered it?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href="/login" className="font-medium text-primary-ink hover:underline">
             Back to sign in
           </Link>
         </p>

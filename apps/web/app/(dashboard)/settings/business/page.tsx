@@ -85,7 +85,7 @@ export default function BusinessSettingsPage() {
       </p>
 
       {error && (
-        <p className="rounded-md border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+        <p className="rounded-md border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive-ink">
           {error}
         </p>
       )}

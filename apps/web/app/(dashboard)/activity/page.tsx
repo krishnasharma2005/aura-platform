@@ -49,7 +49,7 @@ export default function ActivityPage() {
           className={cn(
             "tap-h inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
             !filter
-              ? "border-primary bg-primary/10 text-primary"
+              ? "border-primary bg-primary/10 text-primary-ink"
               : "border-border bg-card text-muted-foreground hover:text-foreground"
           )}
         >
@@ -62,7 +62,7 @@ export default function ActivityPage() {
             className={cn(
               "tap-h inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
               filter === agent.slug
-                ? "border-primary bg-primary/10 text-primary"
+                ? "border-primary bg-primary/10 text-primary-ink"
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
             )}
           >
@@ -79,7 +79,7 @@ export default function ActivityPage() {
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading activity…</p>
           ) : error ? (
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive-ink">{error}</p>
           ) : entries.length === 0 ? (
             <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
               <p className="text-sm text-muted-foreground">

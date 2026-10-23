@@ -109,7 +109,7 @@ export function RuntimeGraph({
         layers are absolutely positioned inside it so neither can push the
         page around.
       */}
-      <div className="relative w-full overflow-hidden rounded-xl bg-gradient-to-b from-primary/[0.045] to-transparent">
+      <div className="relative w-full overflow-hidden rounded-xl">
         {/*
           Nearly square on a phone. The diagram is as tall as it is wide, so
           a 4:3 letterbox spends the scarce dimension (width) and throws away

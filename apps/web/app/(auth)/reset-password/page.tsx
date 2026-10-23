@@ -100,10 +100,10 @@ function ResetPasswordForm() {
               onChange={(e) => setConfirm(e.target.value)}
               aria-invalid={mismatch}
             />
-            {mismatch && <p className="text-xs text-destructive">These don&apos;t match yet.</p>}
+            {mismatch && <p className="text-xs text-destructive-ink">These don&apos;t match yet.</p>}
           </div>
           {error && (
-            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive-ink">
               {error}
             </p>
           )}

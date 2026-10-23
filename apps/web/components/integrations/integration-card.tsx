@@ -65,12 +65,12 @@ export function IntegrationCard({
       <CardContent className="flex flex-1 flex-col">
         <div className="mb-4 flex flex-1 flex-col gap-2.5 rounded-md bg-secondary/40 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> What this lets your agents do
+            <ShieldCheck className="h-3.5 w-3.5 text-primary-ink" /> What this lets your agents do
           </div>
           <ul className="flex flex-col gap-1.5">
             {definition.canDo.map((item) => (
               <li key={item} className="flex gap-2 text-xs text-muted-foreground">
-                <Check className="mt-0.5 h-3 w-3 shrink-0 text-success" />
+                <Check className="mt-0.5 h-3 w-3 shrink-0 text-success-ink" />
                 <span>{item}</span>
               </li>
             ))}
@@ -78,7 +78,7 @@ export function IntegrationCard({
           <ul className="flex flex-col gap-1.5 border-t border-border pt-2.5">
             {definition.cannotDo.map((item) => (
               <li key={item} className="flex gap-2 text-xs text-muted-foreground">
-                <X className="mt-0.5 h-3 w-3 shrink-0 text-destructive/70" />
+                <X className="mt-0.5 h-3 w-3 shrink-0 text-destructive-ink/70" />
                 <span>{item}</span>
               </li>
             ))}

@@ -109,7 +109,7 @@ export default function AnalyticsPage() {
             className={cn(
               "tap-h press inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs font-medium",
               days === range.days
-                ? "border-primary bg-primary/10 text-primary"
+                ? "border-primary bg-primary/10 text-primary-ink"
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
             )}
           >
@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
                     </p>
                     <Link
                       href="/settings/integrations"
-                      className="press mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                      className="press mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary-ink hover:underline"
                     >
                       Connect an account
                       <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />

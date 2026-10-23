@@ -1,30 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Familjen_Grotesk, Public_Sans, IBM_Plex_Mono } from "next/font/google";
+import { DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/toaster";
 
 /**
- * Display: Familjen Grotesk. Angled terminals and a slight condensation give
- * headings a calibrated, instrument-panel character without reaching for the
- * display serif that every AI-designed product uses.
+ * Primary: DM Sans, for everything — headings and body alike. The brandbook
+ * chooses a single family so the company has "a quieter, more unified voice".
+ * Loaded as a variable font so the brand's in-between weights (500 for
+ * display, 550 for H3/H4) render as real weights, never faux-bolded.
  */
-const display = Familjen_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-/** Body: Public Sans — humanist, civic, exceptionally legible small. */
-const ui = Public_Sans({
+const sans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-ui",
-  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-/** Mono: data, IDs, and micro-labels only. */
+/** Technical: IBM Plex Mono — labels, metadata, timestamps, IDs. Never long passages. */
 const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
@@ -38,17 +30,15 @@ export const metadata: Metadata = {
     "Mesnium runs the front desk, sales follow-up, marketing, admin, support, and store insights for your business — so nothing falls through the cracks.",
 };
 
+// The product is dark-first: browser chrome follows the graphite product surface.
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f4ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#11161c" },
-  ],
+  themeColor: "#202226",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${display.variable} ${ui.variable} ${mono.variable} font-sans`}>
+      <body className={`${sans.variable} ${mono.variable} font-sans`}>
         <AuthProvider>
           {children}
           <Toaster />

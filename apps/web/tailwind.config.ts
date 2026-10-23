@@ -16,7 +16,8 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-ui)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
+        // One family: headings use DM Sans too (the brandbook's single-voice rule).
+        display: ["var(--font-ui)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       colors: {
@@ -28,6 +29,8 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          // For text: the fill colour fails contrast as small text on dark surfaces.
+          ink: "hsl(var(--primary-ink))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -36,14 +39,20 @@ const config: Config = {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+          // For text: the fill colour fails contrast as small text on dark surfaces.
+          ink: "hsl(var(--destructive-ink))",
         },
         warning: {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
+          // For text: the fill colour fails contrast as small text on dark surfaces.
+          ink: "hsl(var(--warning-ink))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+          // For text: the fill colour fails contrast as small text on dark surfaces.
+          ink: "hsl(var(--success-ink))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -80,19 +89,16 @@ const config: Config = {
         "2xl": "1.25rem",
       },
       /**
-       * Elevation is tinted with the foreground hue and layered — a tight
-       * contact shadow plus a wide ambient one — so light surfaces read as
-       * physical rather than as outlined rectangles.
+       * Matte. Cards are separated by a hairline, not a shadow; elevation is
+       * reserved for dialogs and floating controls (brandbook p. 21).
        */
       boxShadow: {
-        subtle: "var(--bevel), 0 1px 2px -1px hsl(var(--foreground) / 0.07)",
-        card: "var(--bevel), 0 1px 2px -1px hsl(var(--foreground) / 0.08), 0 4px 12px -6px hsl(var(--foreground) / 0.10)",
-        lifted:
-          "var(--bevel), 0 1px 2px -1px hsl(var(--foreground) / 0.06), 0 8px 24px -10px hsl(var(--foreground) / 0.16), 0 24px 48px -24px hsl(var(--foreground) / 0.12)",
-        panel:
-          "var(--bevel), 0 2px 4px -2px hsl(var(--foreground) / 0.08), 0 16px 40px -16px hsl(var(--foreground) / 0.20)",
-        inset: "inset 0 1px 3px 0 hsl(var(--foreground) / 0.07)",
-        ringed: "0 0 0 1px hsl(var(--primary) / 0.25), 0 0 0 5px hsl(var(--primary) / 0.10)",
+        subtle: "none",
+        card: "none",
+        lifted: "var(--elevation)",
+        panel: "var(--elevation)",
+        inset: "var(--inset-shadow)",
+        ringed: "0 0 0 2px hsl(var(--ring) / 0.5)",
       },
       fontSize: {
         "2xs": ["0.6875rem", { lineHeight: "1rem" }],

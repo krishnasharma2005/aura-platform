@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AGENTS } from "@/lib/agents";
-import { AuraLogo } from "@/components/runtime/aura-mark";
+import { MesniumLogo } from "@/components/brand/mesnium-logo";
 import { cn } from "@/lib/utils";
 
 const WORKSPACE_LINKS = [
@@ -98,7 +98,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     <nav className="flex h-full w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="px-4 py-5">
         <Link href="/" onClick={onNavigate} className="press tap-h inline-flex items-center rounded-md">
-          <AuraLogo tone="onDark" />
+          <MesniumLogo tone="onDark" className="h-7 w-auto" />
         </Link>
       </div>
 
@@ -150,7 +150,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           className="press group flex items-start gap-2 text-xs leading-relaxed text-sidebar-muted hover:text-sidebar-foreground"
         >
           <ShieldCheck
-            className="mt-px h-3.5 w-3.5 shrink-0 text-primary/80 transition-transform duration-200 ease-physical group-hover:scale-110"
+            className="mt-px h-3.5 w-3.5 shrink-0 text-primary-ink/80 transition-transform duration-200 ease-physical group-hover:scale-110"
             strokeWidth={1.75}
           />
           <span>

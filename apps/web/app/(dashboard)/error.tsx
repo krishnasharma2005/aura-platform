@@ -11,7 +11,7 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive-ink">
         <AlertTriangle className="h-5 w-5" />
       </span>
       <p className="font-display text-lg font-medium text-foreground">Something went wrong</p>

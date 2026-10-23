@@ -276,7 +276,7 @@ export function ChatInterface({ agent }: { agent: AgentDefinition }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: reduce ? 0 : i * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                   onClick={() => pickOption(option)}
-                  className="press tap-h inline-flex items-center justify-center rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground shadow-subtle hover:border-primary/40 hover:bg-primary/[0.05] hover:text-primary"
+                  className="press tap-h inline-flex items-center justify-center rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground shadow-subtle hover:border-primary/40 hover:bg-primary/[0.05] hover:text-primary-ink"
                 >
                   {option.label}
                 </motion.button>
@@ -290,7 +290,7 @@ export function ChatInterface({ agent }: { agent: AgentDefinition }) {
               initial="hidden"
               animate="visible"
               role="alert"
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-destructive/25 bg-destructive/[0.07] px-3.5 py-3 text-sm text-destructive"
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-destructive/25 bg-destructive/[0.07] px-3.5 py-3 text-sm text-destructive-ink"
             >
               <span className="flex min-w-0 items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.9} />
@@ -409,7 +409,7 @@ function EmptyState({
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="flex flex-col items-center gap-5 rounded-xl border border-dashed border-border bg-card/60 px-6 py-10 text-center"
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] text-primary ring-1 ring-inset ring-primary/15">
+      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] text-primary-ink ring-1 ring-inset ring-primary/15">
         <Icon className="h-5 w-5" strokeWidth={1.75} />
       </span>
       <div>
@@ -429,7 +429,7 @@ function EmptyState({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 + i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => onPick(prompt)}
-            className="press tap-h inline-flex items-center justify-center rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground shadow-subtle hover:border-primary/40 hover:bg-primary/[0.05] hover:text-primary"
+            className="press tap-h inline-flex items-center justify-center rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground shadow-subtle hover:border-primary/40 hover:bg-primary/[0.05] hover:text-primary-ink"
           >
             {prompt}
           </motion.button>

@@ -194,3 +194,31 @@ async def test_agent_history_endpoint_reads_the_durable_transcript(
     body = response.json()
     assert [turn["content"] for turn in body] == ["What time do you close?", "5:30pm today."]
     assert body[1]["tool_calls"] == ["calendar"]
+
+
+async def test_messages_in_one_exchange_keep_their_order_even_if_the_clock_does_not_tick(
+    db_session, user_and_org, monkeypatch
+):
+    """A visitor's message and the reply to it are saved together. On a coarse
+    clock (Windows) both used to get the same timestamp and then sorted by a
+    random id, so a reply could appear above the question. Freeze the clock to
+    make that the worst case: order must still hold, every time."""
+    from datetime import UTC, datetime
+
+    from src.conversations import service as conversation_service
+
+    _, org, _ = user_and_org
+    frozen = datetime(2026, 10, 23, 9, 0, 0)
+    monkeypatch.setattr(conversation_service, "_now", lambda: frozen)
+
+    for attempt in range(8):  # an unordered tie-break fails a run like this almost surely
+        key = f"order-check-{attempt}"
+        await conversation_service.record_turns(
+            db_session,
+            org.id,
+            key,
+            "receptionist",
+            [("user", "first", None), ("assistant", "second", None), ("user", "third", None), ("assistant", "fourth", None)],
+        )
+        turns = await conversation_service.get_turns(db_session, org.id, key)
+        assert [t["content"] for t in turns] == ["first", "second", "third", "fourth"], attempt

@@ -6,7 +6,7 @@ identifier guessed or replayed from another tenant resolves to nothing.
 """
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
@@ -82,17 +82,22 @@ async def record_turns(
     if contact_id is not None and conversation.contact_id is None:
         conversation.contact_id = contact_id
 
-    for role, content, tool_calls in turns:
+    # Strictly increasing timestamps within the exchange. Calling the clock once
+    # per message isn't enough: on Windows (and any coarse clock) back-to-back
+    # calls return the same instant, and a tie falls through to a random UUID, so
+    # an assistant reply could be listed before the message it answers.
+    started = _now()
+    for index, (role, content, tool_calls) in enumerate(turns):
         db.add(
             Message(
                 conversation_id=conversation.id,
                 role=role,
                 content=content,
                 tool_calls=tool_calls or None,
-                created_at=_now(),
+                created_at=started + timedelta(microseconds=index),
             )
         )
-    conversation.last_message_at = _now()
+    conversation.last_message_at = started + timedelta(microseconds=max(len(turns) - 1, 0))
     await db.commit()
     await db.refresh(conversation)
     return conversation
